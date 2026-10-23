@@ -12,7 +12,7 @@ Python は 3.11 に統一する。uv で導入し、仮想環境は `app/.venv` 
 py -3.9 -m pip install --user uv          # uv が無い場合(PATH にあれば以降の `py -3.9 -m uv` は `uv` でよい)
 py -3.9 -m uv python install 3.11
 py -3.9 -m uv venv --python 3.11 .venv
-py -3.9 -m uv pip install --python .venv -c constraints.txt -e "./backend[dev]"
+py -3.9 -m uv pip install --python .venv -c constraints.txt -e "./features[dev]" -e "./backend[dev]"
 ```
 
 ライブラリのバージョンは `constraints.txt` で固定している。インストールには必ず `-c constraints.txt` を付ける。
@@ -28,6 +28,23 @@ py -3.9 -m uv pip install --python .venv -c constraints.txt -e "./sample_data[de
 ```
 
 出力: 標準取込形式の `products.csv`・`pos_sales.csv`・`inventory.csv`・`waste.csv` と、`weather.csv`・`calendar.csv`・`promotions.csv`・`true_demand.csv`(評価用の真の需要)。
+
+## 需要予測モデルの作成と差し替え(F-09)
+
+モデルの学習・評価・バックテストは本体とは別の `model_training`(`smdx_training`)で行い、成果物(モデルファイルと評価レポート)だけを本体に渡す。
+入力はサンプル出力と同じ形式のフォルダ(実データは同じ形式に書き出して使う)。
+
+```bash
+py -3.9 -m uv pip install --python .venv -c constraints.txt -e ./features -e ./backend -e ./sample_data -e "./model_training[dev]"
+.venv/Scripts/python -m smdx_training run --data sample_data/output --granularity daily --out model_training/output
+.venv/Scripts/python -m smdx_training run --data sample_data/output --granularity time_band --out model_training/output
+```
+
+- 直近4週間を検証期間とし、ランダムフォレストと LightGBM をベースライン(前週同曜日)と WAPE で比べる。評価レポート `report-{版}.md` は毎回出力する。
+- ベースラインを上回るモデルがあれば `daily.joblib` / `time_band.joblib` を出力する。無ければ「採用しません」と表示し、既存のファイルは残す。
+- 評価レポートでベースラインを上回ることを確認してから、`backend/models/` にコピーして差し替える。本体はファイルの更新を検知して読み直す(再起動は不要)。
+- 店舗の設定(画面の「設定」)を既定から変えている場合は、同じ値を `--time-bands 10,11,14,17`・`--business-hours 10-20`・`--safety-factor 1.1` で指定する。
+- 時間帯の区切りの設定を変えたら、その区切りを `--time-bands` に指定して時間帯別モデルを作り直す(区切りが違うモデルは使わず、ベースラインで予測する)。
 
 ## 設定
 

@@ -1,4 +1,6 @@
 """アプリの生成、ミドルウェア、ルータ登録。"""
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
@@ -15,6 +17,7 @@ from smdx_api.api import (
 from smdx_api.config import AppConfig, get_config
 from smdx_api.db.session import make_engine, make_session_factory
 from smdx_api.security import CSRF_HEADER, CsrfMiddleware
+from smdx_api.predictor.registry import ModelRegistry
 from smdx_api.weather_client.client import OpenMeteoClient
 
 SESSION_COOKIE_NAME = "smdx_session"
@@ -28,6 +31,11 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     app.state.session_factory = make_session_factory(make_engine(config.database_url))
     # 気象APIの呼び出しは差し替え可能にする(試験では偽のクライアントに置き換える)
     app.state.weather_client = OpenMeteoClient.from_config(config)
+    # モデルファイルは起動時に読み込んで適合確認し、使えない場合は理由をログに出す(以後はファイルの更新時に読み直す)
+    registry = ModelRegistry({"daily": Path(config.model_daily_path), "time_band": Path(config.model_time_band_path)})
+    for granularity in ("daily", "time_band"):
+        registry.status(granularity)
+    app.state.model_registry = registry
 
     # add_middleware は後に追加したものほど外側になる。外側から CORS → CSRF → セッション の順にする
     app.add_middleware(

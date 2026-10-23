@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "smdx-features"
+version = "0.1.0"
+description = "スーパーマーケットDX 特徴量作成の共通パッケージ(本体とモデル作成用プロジェクトで共用)"
+requires-python = ">=3.11,<3.12"
+# 版は app/constraints.txt で固定する
+dependencies = ["numpy", "pandas", "tzdata"]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[tool.setuptools.packages.find]
+include = ["smdx_features*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "smdx-training"
+version = "0.1.0"
+description = "スーパーマーケットDX モデル作成用プロジェクト(学習・評価・バックテスト。本体とは別に実行)"
+requires-python = ">=3.11,<3.12"
+# 版は app/constraints.txt で固定する(本体と同じ版の scikit-learn・LightGBM・pandas でモデルを作る)
+dependencies = [
+    "smdx-features",
+    # order_calc(バックテスト)と適合確認(predictor)を本体と共用する
+    "smdx-api",
+    "scikit-learn",
+    "lightgbm",
+    "joblib",
+    "pandas",
+    "numpy",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "smdx-sample"]
+
+[tool.setuptools.packages.find]
+include = ["smdx_training*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
