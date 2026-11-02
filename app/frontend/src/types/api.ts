@@ -227,6 +227,7 @@ export interface TomorrowWeather {
 
 export interface Dashboard {
   now: string;
+  business_hours: { open: string; close: string };
   departments: DashboardDepartment[];
   deadlines: DashboardDeadline[];
   tomorrow: {

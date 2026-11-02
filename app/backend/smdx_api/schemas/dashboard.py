@@ -79,8 +79,15 @@ class DataStatusOut(BaseModel):
     stale_pos: bool
 
 
+class BusinessHoursOut(BaseModel):
+    """営業時間(HH:MM)。時間軸の範囲に使う。"""
+    open: str
+    close: str
+
+
 class DashboardOut(BaseModel):
     now: JstDatetime
+    business_hours: BusinessHoursOut
     departments: list[DashboardDepartmentOut]
     deadlines: list[DeadlineOut]
     tomorrow: TomorrowOut

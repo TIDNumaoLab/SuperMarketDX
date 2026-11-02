@@ -61,6 +61,33 @@ def test_starts_recalc_only_where_needed(client, login, user_factory, veg_setup,
 
 
 @pytest.mark.db
+def test_jobs_of_several_departments_all_finish(client, login, user_factory, veg_setup, product_factory, test_services,
+                                                db):
+    """複数部門で開始したジョブ(並行して実行する)が、いずれも最後まで実行される。"""
+    product_factory(code="FISH-P1", department="FISH")
+    login(client, user_factory(role="manager", departments=()))
+    first = {d["department_code"]: d for d in get_dashboard(client)["departments"]}
+    assert first["VEG"]["job"]["status"] == "running" and first["FISH"]["job"]["status"] == "running"
+    second = {d["department_code"]: d for d in get_dashboard(client)["departments"]}
+    assert [second[c]["last_job"]["status"] for c in ("VEG", "FISH")] == ["succeeded", "succeeded"]
+    assert second["VEG"]["job"] is None and second["FISH"]["job"] is None
+
+
+@pytest.mark.db
+def test_last_job_is_of_default_view_and_business_hours(client, login, user_factory, test_services, db, fixed_now):
+    """最後のジョブは既定表示のものだけ(別の対象日を指定した再計算の失敗は出さない)。営業時間を返す。"""
+    from smdx_api.proposals.jobs import JobKey, start_or_get_job
+
+    other, _ = start_or_get_job(db, dept(db, "VEG"), JobKey("date", date(2026, 10, 20)), fixed_now.value, total=1)
+    other.status, other.error, other.finished_at = "failed", "失敗", fixed_now.value
+    db.commit()
+    login(client, user_factory(departments=("VEG",)))
+    body = get_dashboard(client)
+    assert body["departments"][0]["last_job"] is None
+    assert body["business_hours"] == {"open": "10:00", "close": "20:00"}
+
+
+@pytest.mark.db
 def test_running_job_is_returned_not_duplicated(client, login, user_factory, veg_setup, test_services, db, fixed_now):
     from smdx_api.proposals.jobs import JobKey, start_or_get_job
 

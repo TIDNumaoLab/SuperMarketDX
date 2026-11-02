@@ -44,6 +44,26 @@ export function minutesLeft(deadline: string, now: Date): number {
   return Math.ceil((new Date(deadline).getTime() - now.getTime()) / 60000);
 }
 
+// 時間軸の印。生鮮はリードタイムにより同じ締め時刻に納品日の違うまとまりが並ぶので、同じ期限は1つの印にまとめる
+export interface TimelineMark {
+  deadline: string;
+  groups: DashboardDeadline[];
+  pending: number;
+  expired: number;
+}
+
+export function marksByDeadline(groups: DashboardDeadline[]): TimelineMark[] {
+  const out = new Map<string, TimelineMark>();
+  for (const g of groups) {
+    const m = out.get(g.deadline) ?? { deadline: g.deadline, groups: [], pending: 0, expired: 0 };
+    m.groups.push(g);
+    m.pending += g.pending;
+    m.expired += g.expired;
+    out.set(g.deadline, m);
+  }
+  return [...out.values()];
+}
+
 export function markState(d: Pick<DashboardDeadline, "pending" | "expired" | "deadline">, now: Date): MarkState {
   const left = minutesLeft(d.deadline, now);
   if (left <= 0) return d.expired > 0 ? "missed" : "done";

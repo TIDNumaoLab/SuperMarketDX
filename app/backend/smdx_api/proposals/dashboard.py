@@ -26,6 +26,7 @@ from smdx_api.db.models import (
 )
 from smdx_api.proposals import inputs
 from smdx_api.proposals.compute_fresh import business_hours
+from smdx_api.proposals.jobs import JobKey
 from smdx_api.proposals.schedule import deli_default_target
 from smdx_api.proposals.service import is_production
 from smdx_api.settings.values import AppSettings
@@ -101,8 +102,10 @@ def status_counts(g: DeadlineGroup) -> dict[str, int]:
     return {s: g.counts.get(s, 0) for s in _STATUSES}
 
 
-def last_finished_job(db: Session, department: Department) -> ProposalJob | None:
+def last_finished_job(db: Session, department: Department, key: JobKey) -> ProposalJob | None:
+    """既定表示のジョブ(key)のうち、最後に終わったもの。別の対象日を指定した再計算の成否は含めない。"""
     return db.scalar(select(ProposalJob).where(ProposalJob.department_id == department.id,
+                                               ProposalJob.scope == key.scope, ProposalJob.target_date == key.target_date,
                                                ProposalJob.status != "running")
                      .order_by(ProposalJob.finished_at.desc().nulls_last(), ProposalJob.id.desc()).limit(1))
 

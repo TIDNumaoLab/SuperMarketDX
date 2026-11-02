@@ -1,14 +1,12 @@
 import { screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import * as dashboardApi from "../src/api/dashboard";
-import * as settingsApi from "../src/api/settings";
 import DashboardPage from "../src/pages/DashboardPage";
 import type { Dashboard, DashboardDeadline } from "../src/types/api";
 import { DELI, FISH, VEG, manager, renderPage, staff } from "./helpers";
 
 vi.mock("../src/api/auth");
 vi.mock("../src/api/dashboard");
-vi.mock("../src/api/settings");
 
 function deadline(over: Partial<DashboardDeadline>): DashboardDeadline {
   return {
@@ -29,6 +27,7 @@ function deadline(over: Partial<DashboardDeadline>): DashboardDeadline {
 function dashboard(over: Partial<Dashboard> = {}): Dashboard {
   return {
     now: "2026-10-16T14:20:00+09:00",
+    business_hours: { open: "10:00", close: "20:00" },
     departments: [
       { department_code: "DELI", department_name: "惣菜", business_type: "production", job: null, last_job: null },
       { department_code: "FISH", department_name: "鮮魚", business_type: "order", job: null, last_job: null },
@@ -56,7 +55,6 @@ function dashboard(over: Partial<Dashboard> = {}): Dashboard {
 }
 
 beforeEach(() => {
-  vi.mocked(settingsApi.getSettings).mockResolvedValue({ business_hours: { open: "10:00", close: "20:00" } });
   vi.mocked(dashboardApi.getDashboard).mockResolvedValue(dashboard());
 });
 
@@ -92,6 +90,22 @@ test("a closed deadline with expired proposals is not shown as done", async () =
   expect(within(veg).queryByText("✓")).not.toBeInTheDocument();
 });
 
+test("groups with the same deadline in a lane share one mark", async () => {
+  vi.mocked(dashboardApi.getDashboard).mockResolvedValue(
+    dashboard({
+      deadlines: [
+        deadline({ pending: 2 }),
+        deadline({ target_date: "2026-10-18", pending: 1, expired: 0 }),
+      ],
+    }),
+  );
+  await renderPage(<DashboardPage />, manager(), "今日の状況");
+  const veg = await screen.findByRole("link", { name: "青果 10/17・10/18 納品分 発注締め 15:00 未承認3件 あと40分" });
+  // 納品日の違うまとまりは、対象日を選ばず既定表示で開く
+  expect(veg).toHaveAttribute("href", "/orders?department=VEG");
+  expect(within(veg).getByText("3")).toBeInTheDocument();
+});
+
 test("lists pending groups by deadline with warnings and bulk count", async () => {
   await renderPage(<DashboardPage />, manager(), "今日の状況");
   const list = await screen.findByRole("list", { name: "締めが近い順の未承認" });
@@ -104,6 +118,8 @@ test("lists pending groups by deadline with warnings and bulk count", async () =
   expect(within(items[0]).getByText("青果 10/17 納品分 未承認2件")).toBeInTheDocument();
   expect(within(items[0]).getByText("在庫未取込 1件")).toBeInTheDocument();
   expect(within(items[0]).getByText(/警告付きは一括承認から外れます/)).toBeInTheDocument();
+  // 警告があっても一括承認できる件数を出す
+  expect(within(items[0]).getByText("うち1件は一括承認できます。")).toBeInTheDocument();
   expect(within(items[1]).getByText("うち3件は一括承認できます。")).toBeInTheDocument();
   expect(within(items[2]).getByText("惣菜 10/17 10時の部 未承認18件")).toBeInTheDocument();
   expect(within(items[2]).getByRole("link", { name: "製造計画を開く" })).toHaveAttribute(

@@ -2,7 +2,8 @@
 
 部門の business_type で生鮮(order: 商品ごとの最も早い納品日)と惣菜(production: 対象日の時間帯)を振り分ける。
 """
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta
 
 from fastapi import BackgroundTasks
@@ -69,10 +70,12 @@ def _fetched_at(basis: dict) -> datetime | None:
 
 def needs_auto_recalc(
     db: Session, department: Department, now: datetime, settings: AppSettings, services: ComputeServices,
-    targets: FreshTargets,
+    targets: FreshTargets, targets_by_key: dict[tuple[int, int | None], date] | None = None,
 ) -> bool:
-    """対象のいずれかの提案が未作成、または未承認・修正なしの提案が古ければ True。"""
-    targets_by_key = wanted(db, department, now, settings, targets)
+    """対象のいずれかの提案が未作成、または未承認・修正なしの提案が古ければ True。
+    targets_by_key は wanted() の結果(呼び出し側で求めていれば渡し、問い合わせを繰り返さない)。"""
+    if targets_by_key is None:
+        targets_by_key = wanted(db, department, now, settings, targets)
     if not targets_by_key:
         return False
     rows = db.scalars(select(Proposal).where(
@@ -107,7 +110,22 @@ class JobLauncher:
         self.clock = clock
 
     def launch(self, background_tasks: BackgroundTasks, job_id: int, targets: FreshTargets) -> None:
-        background_tasks.add_task(run_job, job_id, targets, self.session_factory, self.services, self.now_fn, self.clock)
+        background_tasks.add_task(self.run, job_id, targets)
+
+    def launch_parallel(self, background_tasks: BackgroundTasks, jobs: Sequence[tuple[int, FreshTargets]]) -> None:
+        """複数のジョブを並行して実行する。BackgroundTasks は積んだタスクを1つずつ順に実行するため、
+        別々に積むと後ろのジョブが前のジョブの終了を待ち、その間も実行中の10分の判定が進んでしまう。"""
+        if jobs:
+            background_tasks.add_task(self._run_all, list(jobs))
+
+    def run(self, job_id: int, targets: FreshTargets) -> None:
+        run_job(job_id, targets, self.session_factory, self.services, self.now_fn, self.clock)
+
+    def _run_all(self, jobs: list[tuple[int, FreshTargets]]) -> None:
+        # ジョブごとに1スレッド・1セッション(DB 接続)を使う。run_job は例外を外に出さない
+        with ThreadPoolExecutor(max_workers=len(jobs)) as pool:
+            for job_id, targets in jobs:
+                pool.submit(self.run, job_id, targets)
 
 
 def covering_default_job(
@@ -128,18 +146,18 @@ def covering_default_job(
 
 def start_auto_recalc(
     db: Session, department: Department, now: datetime, settings: AppSettings, services: ComputeServices,
-    targets: FreshTargets, launcher: JobLauncher, background_tasks: BackgroundTasks,
+    targets: FreshTargets, launch: Callable[[int, FreshTargets], None],
 ) -> ProposalJob | None:
     """最新性判定で必要ならジョブを開始し、そのジョブを返す(対象を含む既定表示のジョブが実行中ならそれを返す)。
-    不要なら実行中のジョブ(無ければ None)を返す。"""
+    不要なら実行中のジョブ(無ければ None)を返す。新しく開始したジョブは launch(ジョブID, 対象)で実行に回す。"""
     key = job_key(department, now, settings, targets)
-    if not needs_auto_recalc(db, department, now, settings, services, targets):
+    targets_by_key = wanted(db, department, now, settings, targets)
+    if not needs_auto_recalc(db, department, now, settings, services, targets, targets_by_key):
         return running_job(db, department, key, now)
     covering = covering_default_job(db, department, now, settings, targets)
     if covering is not None:
         return covering
-    total = len(wanted(db, department, now, settings, targets))
-    job, created = start_or_get_job(db, department, key, now, total)
+    job, created = start_or_get_job(db, department, key, now, len(targets_by_key))
     if created:
-        launcher.launch(background_tasks, job.id, resolved_targets(department, now, settings, targets))
+        launch(job.id, resolved_targets(department, now, settings, targets))
     return job

@@ -232,6 +232,15 @@ test("opens with the department and target date from the dashboard link", async 
   expect(screen.getByLabelText("対象日")).toHaveValue("2026-10-18");
 });
 
+test("ignores a target date from the URL that is malformed or out of range", async () => {
+  for (const bad of ["2026-10-15", "2026-11-01", "abc"]) {
+    const view = await renderPage(<OrdersPage />, staff(VEG), "発注", `/orders?department=VEG&target_date=${bad}`);
+    await screen.findByText("キャベツ");
+    expect(proposalsApi.listProposals).toHaveBeenLastCalledWith({ departmentCode: "VEG", targetDate: undefined, status: undefined });
+    view.unmount();
+  }
+});
+
 test("ignores a department from the URL that cannot be selected", async () => {
   await renderPage(<OrdersPage />, staff(VEG, DELI), "発注", "/orders?department=DELI");
   await screen.findByText("キャベツ");

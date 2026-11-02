@@ -4,16 +4,17 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { errorMessage } from "../api/client";
 import { getDashboard } from "../api/dashboard";
-import { getSettings } from "../api/settings";
 import ErrorBanner from "../components/ErrorBanner";
 import proposalStyles from "../components/Proposals.module.css";
 import { WARNING_LABELS, formatMonthDay, formatShortDateTime, formatTime, jstToday } from "../format";
-import type { Dashboard, DashboardDeadline, DashboardDepartment, Settings } from "../types/api";
+import type { Dashboard, DashboardDeadline, DashboardDepartment } from "../types/api";
 import styles from "./Dashboard.module.css";
 import {
   type Axis,
   type MarkState,
+  type TimelineMark,
   formatRemaining,
+  marksByDeadline,
   markState,
   minutesLeft,
   positionPercent,
@@ -54,7 +55,19 @@ function screenLink(d: DashboardDepartment, g: DashboardDeadline): string {
   return `${isProduction(d) ? "/production" : "/orders"}?${params}`;
 }
 
-function stateText(state: MarkState, g: DashboardDeadline, now: Date): string {
+// まとめた印の対象。例: 10/17 納品分、10/17・10/18 納品分
+function markTargetLabel(m: TimelineMark): string {
+  if (m.groups.length === 1) return targetLabel(m.groups[0]);
+  return `${m.groups.map((g) => formatMonthDay(g.target_date)).join("・")} 納品分`;
+}
+
+// 納品日の違うまとまりをまとめた印は、対象日を選ばず既定表示(各商品の最も早い納品日)で開く
+function markLink(d: DashboardDepartment, m: TimelineMark): string {
+  if (m.groups.length === 1) return screenLink(d, m.groups[0]);
+  return `${isProduction(d) ? "/production" : "/orders"}?${new URLSearchParams({ department: d.department_code })}`;
+}
+
+function stateText(state: MarkState, g: TimelineMark, now: Date): string {
   if (state === "done") return "締め済み";
   if (state === "missed") return `締め済み 期限切れ${g.expired}件`;
   if (state === "ready") return "全件承認済み";
@@ -63,7 +76,7 @@ function stateText(state: MarkState, g: DashboardDeadline, now: Date): string {
 }
 
 // 印の中: 未承認の件数。締め済み・全件承認済みは ✓、期限切れがあれば「!」と期限切れの件数
-function pinText(state: MarkState, g: DashboardDeadline): string {
+function pinText(state: MarkState, g: TimelineMark): string {
   if (state === "missed") return `!${g.expired}`;
   return state === "done" || state === "ready" ? "✓" : String(g.pending);
 }
@@ -91,8 +104,10 @@ function Timeline({ data, axis }: { data: Dashboard; axis: Axis }) {
       </div>
       <div className={styles.lanes}>
         {data.departments.map((d) => {
-          const groups = data.deadlines.filter((g) => g.department_code === d.department_code && jstDate(g.deadline) === today);
-          const positions = groups.map((g) => positionPercent(g.deadline, axis));
+          const marks = marksByDeadline(
+            data.deadlines.filter((g) => g.department_code === d.department_code && jstDate(g.deadline) === today),
+          );
+          const positions = marks.map((m) => positionPercent(m.deadline, axis));
           const above = staggerAbove(positions, 12);
           return (
             <div key={d.department_code} className={styles.lane}>
@@ -101,17 +116,18 @@ function Timeline({ data, axis }: { data: Dashboard; axis: Axis }) {
                 <small>{LANE_NOTE[d.business_type]}</small>
               </div>
               <div className={styles.laneTrack}>
-                {groups.map((g, i) => {
+                {marks.map((g, i) => {
                   const state = markState(g, now);
                   const kind = isProduction(d) ? "製造開始" : "発注締め";
-                  const label = `${formatTime(g.deadline)} ${g.time_band === null ? "締め" : `${g.time_band}時の部`}`;
+                  const band = g.groups[0].time_band;
+                  const label = `${formatTime(g.deadline)} ${band === null ? "締め" : `${band}時の部`}`;
                   return (
                     <Link
-                      key={`${g.deadline}-${g.target_date}-${g.time_band}`}
-                      to={screenLink(d, g)}
+                      key={g.deadline}
+                      to={markLink(d, g)}
                       className={`${styles.mark} ${styles[state]} ${above[i] ? styles.above : ""}`}
                       style={{ left: `${positions[i]}%` }}
-                      aria-label={`${d.department_name} ${targetLabel(g)} ${kind} ${formatTime(g.deadline)} ${stateText(state, g, now)}`}
+                      aria-label={`${d.department_name} ${markTargetLabel(g)} ${kind} ${formatTime(g.deadline)} ${stateText(state, g, now)}`}
                     >
                       <span className={styles.pin}>{pinText(state, g)}</span>
                       <span className={styles.t}>
@@ -178,10 +194,9 @@ function PendingList({ data }: { data: Dashboard }) {
                     <span key={w.code} className={proposalStyles.warning}>{`${WARNING_LABELS[w.code]} ${w.count}件`}</span>
                   ))}
                   <small>
-                    {warned
-                      ? "警告付きは一括承認から外れます。画面で確認してください。"
-                      : `うち${g.bulk_approvable}件は一括承認できます。`}
+                    {`うち${g.bulk_approvable}件は一括承認できます。`}
                   </small>
+                  {warned && <small>警告付きは一括承認から外れます。画面で確認してください。</small>}
                 </div>
                 <Link className={isProduction(d) ? styles.btnSub : styles.btn} to={screenLink(d, g)}>
                   {isProduction(d) ? "製造計画を開く" : "発注を開く"}
@@ -302,28 +317,22 @@ function DataStatus({ data }: { data: Dashboard }) {
 
 export default function DashboardPage() {
   const [data, setData] = useState<Dashboard | null>(null);
-  const [settings, setSettings] = useState<Settings | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     getDashboard()
       .then(setData)
       .catch((e) => setError(errorMessage(e)));
-    getSettings()
-      .then(setSettings)
-      .catch((e) => setError(errorMessage(e)));
   }, []);
 
-  const hours = settings?.business_hours as { open?: string; close?: string } | undefined;
   const today = data ? jstDate(data.now) : "";
-  const axis =
-    data && hours?.open && hours.close
-      ? timelineAxis(
-          hours.open,
-          hours.close,
-          data.deadlines.filter((g) => jstDate(g.deadline) === today).map((g) => g.deadline),
-        )
-      : null;
+  const axis = data
+    ? timelineAxis(
+        data.business_hours.open,
+        data.business_hours.close,
+        data.deadlines.filter((g) => jstDate(g.deadline) === today).map((g) => g.deadline),
+      )
+    : null;
 
   return (
     <section>

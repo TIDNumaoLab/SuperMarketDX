@@ -13,10 +13,11 @@ from smdx_api.db.models import Department
 from smdx_api.proposals import dashboard
 from smdx_api.proposals.compute_fresh import ComputeServices, FreshTargets
 from smdx_api.proposals.deadlines import apply_deadlines
-from smdx_api.proposals.service import JobLauncher, start_auto_recalc
+from smdx_api.proposals.service import JobLauncher, job_key, start_auto_recalc
 from smdx_api.schemas.dashboard import (
     CalendarEntryOut,
     DashboardDepartmentOut,
+    BusinessHoursOut,
     DashboardOut,
     DataStatusOut,
     DeadlineOut,
@@ -49,14 +50,18 @@ def get_dashboard(
     settings = load_settings(db)
 
     department_out = []
+    # 開始したジョブは部門ごとに並行して実行する(店長は全部門を同時に計算する)
+    started: list[tuple[int, FreshTargets]] = []
     for d in departments:
-        job = start_auto_recalc(db, d, now, settings, services, FreshTargets(None), launcher, background_tasks)
-        last = dashboard.last_finished_job(db, d)
+        job = start_auto_recalc(db, d, now, settings, services, FreshTargets(None),
+                                lambda job_id, t: started.append((job_id, t)))
+        last = dashboard.last_finished_job(db, d, job_key(d, now, settings, FreshTargets(None)))
         department_out.append(DashboardDepartmentOut(
             department_code=d.code, department_name=d.name, business_type=d.business_type,
             job=job_out(job) if job else None,
             last_job=LastJobOut(status=last.status, finished_at=last.finished_at, error=last.error) if last else None,
         ))
+    launcher.launch_parallel(background_tasks, started)
 
     deadlines = [
         DeadlineOut(department_code=g.department_code, deadline=g.deadline, target_date=g.target_date,
@@ -77,5 +82,6 @@ def get_dashboard(
         calendar=[CalendarEntryOut(kind=c.kind, name=c.name) for c in dashboard.calendar_of(db, tomorrow)],
     )
     status = [DataStatusOut(**vars(dashboard.data_status(db, d, now, settings))) for d in departments]
-    return DashboardOut(now=now, departments=department_out, deadlines=deadlines, tomorrow=tomorrow_out,
-                        data_status=status)
+    hours = BusinessHoursOut(open=settings.business_open.strftime("%H:%M"), close=settings.business_close.strftime("%H:%M"))
+    return DashboardOut(now=now, business_hours=hours, departments=department_out, deadlines=deadlines,
+                        tomorrow=tomorrow_out, data_status=status)

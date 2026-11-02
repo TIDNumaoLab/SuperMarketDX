@@ -157,7 +157,8 @@ def list_proposals(
     db.commit()
     settings = load_settings(db)
     key = job_key(department, now, settings, targets)
-    job = start_auto_recalc(db, department, now, settings, services, targets, launcher, background_tasks)
+    job = start_auto_recalc(db, department, now, settings, services, targets,
+                            lambda job_id, t: launcher.launch(background_tasks, job_id, t))
     shown = _shown(db, department, now, settings, targets, status)
     shown_date = deli_target(now, settings, targets) if is_production(department) else targets.explicit_date
     return ProposalListOut(proposals=proposals_out(db, shown), target_date=shown_date, freshness=_freshness(shown),

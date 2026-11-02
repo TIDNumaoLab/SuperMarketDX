@@ -22,7 +22,7 @@ import ErrorBanner from "../components/ErrorBanner";
 import FreshnessBar from "../components/FreshnessBar";
 import ProposalTable from "../components/ProposalTable";
 import proposalStyles from "../components/Proposals.module.css";
-import { confirmMessage, formatMonthDay, STATUS_LABELS } from "../format";
+import { confirmMessage, formatMonthDay, jstToday, STATUS_LABELS } from "../format";
 import { useProposals } from "../hooks/useProposals";
 import styles from "../styles/page.module.css";
 import type { Job, Product, Proposal, ProposalStatus, Settings } from "../types/api";
@@ -53,7 +53,12 @@ export default function ProposalPage({ mode }: { mode: ProposalMode }) {
     return options.find((d) => d.code === requested)?.code ?? options[0]?.code ?? "";
   });
   const [products, setProducts] = useState<Product[]>([]);
-  const [targetDate, setTargetDate] = useState(() => params.get("target_date") ?? "");
+  // URL の対象日は、YYYY-MM-DD で当日〜15日先のときだけ使う(開いたまま日付が変わった古いリンク等は無視する)
+  const [targetDate, setTargetDate] = useState(() => {
+    const requested = params.get("target_date") ?? "";
+    const valid = /^\d{4}-\d{2}-\d{2}$/.test(requested) && requested >= jstToday() && requested <= jstToday(15);
+    return valid ? requested : "";
+  });
   const [status, setStatus] = useState<ProposalStatus | "">("");
   const [settings, setSettings] = useState<Settings | null>(null);
   const [selected, setSelected] = useState<Set<number>>(new Set());

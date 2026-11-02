@@ -347,11 +347,27 @@ def model_services(tmp_path):
 
 @pytest.fixture
 def job_session_factory(db):
-    """ジョブ(run_job)が使うセッション工場。試験の db と同じ接続・トランザクションの中のセーブポイントで動く。"""
+    """ジョブ(run_job)が使うセッション工場。試験の db と同じ接続・トランザクションの中のセーブポイントで動く。
+    1つの接続を共用するため、並行して実行するジョブ(今日の状況)は with の間ロックを持ち、1つずつ順に動かす。"""
+    import threading
+
     conn = db.connection()
+    # 同じスレッドの中で入れ子にセッションを開く試験(test_jobs)があるので、再入できるロックにする
+    lock = threading.RLock()
+
+    class SerialSession(Session):
+        def __enter__(self):
+            lock.acquire()
+            return super().__enter__()
+
+        def __exit__(self, *exc):
+            try:
+                return super().__exit__(*exc)
+            finally:
+                lock.release()
 
     def make() -> Session:
-        return Session(bind=conn, join_transaction_mode="create_savepoint")
+        return SerialSession(bind=conn, join_transaction_mode="create_savepoint")
 
     return make
 
