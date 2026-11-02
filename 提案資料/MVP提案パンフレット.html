@@ -99,30 +99,63 @@ p{margin:0}
 .principle h3 .k.h{background:var(--ink)}
 .principle p{font-size:8.8pt}
 
-/* ---------- 3ページ: 画面イメージ ---------- */
-.mock{border:1px solid var(--rule);border-radius:2.5mm;background:#fff;overflow:hidden}
-.mock-bar{display:flex;gap:3mm;align-items:center;justify-content:space-between;padding:2mm 3.5mm;background:var(--ink);color:var(--paper);font-size:8pt}
-.mock-bar .fresh{opacity:.8}
-.mock-filter{display:flex;gap:2mm;padding:2mm 3.5mm;border-bottom:1px solid var(--rule);font-size:7.6pt;flex-wrap:wrap}
-.mock-filter span{border:1px solid var(--rule);border-radius:1mm;padding:0 2mm}
+/* ---------- 3・4ページ: 画面イメージ(デザイン案の画面を再現) ---------- */
+.mock{--app-dark:#1F3D36;--app-green:#1D7A55;--app-line:#D6E0DC;--app-bg:#F1F5F4;--app-warn:#9A4A00;--app-warnbg:#FFEED6;--app-band:#E9A23B;--stamp:#C2362B;
+  border:1px solid var(--rule);border-radius:2.5mm;background:var(--app-bg);overflow:hidden;padding:2.5mm 3mm;display:flex;flex-direction:column;gap:1.6mm}
+.app-head{display:flex;justify-content:space-between;align-items:flex-end;gap:3mm}
+.app-head h4{margin:0 2mm 0 0;display:inline;font-family:var(--f-display);font-size:12pt;font-weight:900;line-height:1.2}
+.app-head .sub{font-size:7.4pt;color:var(--ink-soft)}
+.app-dl{text-align:right;line-height:1.2}
+.app-dl small{display:block;font-size:6.8pt;color:var(--ink-soft)}
+.app-dl b{font-family:var(--f-display);font-size:13pt;color:var(--app-green);font-weight:900}
+.app-filter{display:flex;gap:2.5mm;align-items:flex-end;flex-wrap:wrap;font-size:7pt}
+.app-filter label{display:flex;flex-direction:column;gap:.5mm;color:var(--ink-soft);font-size:6.4pt}
+.app-sel{border:1px solid var(--app-line);border-radius:1mm;background:#fff;padding:.3mm 2mm;color:var(--ink);font-size:7.4pt}
+.app-seg{display:inline-flex;border:1px solid var(--app-line);border-radius:1mm;overflow:hidden;background:#fff}
+.app-seg span{padding:.3mm 2.2mm;border-left:1px solid var(--app-line);color:var(--ink-soft);font-size:7pt;line-height:1.7}
+.app-seg span:first-child{border-left:0}
+.app-seg span.on{background:var(--app-dark);color:#fff;font-weight:700}
+.app-fresh{display:flex;gap:4mm;align-items:center;background:#fff;border:1px solid var(--app-line);border-radius:1.2mm;padding:1.2mm 3mm;font-size:7pt;color:var(--ink-soft);flex-wrap:wrap}
+.app-fresh b{color:var(--ink);font-family:var(--f-num);font-weight:600}
+.app-fresh .btn{margin-left:auto}
+.app-card{background:#fff;border:1px solid var(--app-line);border-radius:1.2mm;overflow:hidden}
 .tbl-wrap{overflow-x:auto}
-.mock table{width:100%;border-collapse:collapse;font-size:8pt}
-.mock th{font-weight:500;color:var(--ink-soft);text-align:left;padding:1.6mm 2.2mm;border-bottom:1px solid var(--rule);white-space:nowrap;font-size:7.4pt}
-.mock td{padding:1.8mm 2.2mm;border-bottom:1px solid #EEF2F0;vertical-align:middle;white-space:nowrap}
+.mock table{width:100%;border-collapse:collapse;font-size:7.3pt}
+.mock th{font-weight:500;color:var(--ink-soft);text-align:left;padding:1mm 1.1mm;border-bottom:1px solid var(--app-line);font-size:6.6pt;background:#F7F9F8}
+.mock td{padding:1.1mm 1.1mm;border-bottom:1px solid #EAF0ED;vertical-align:middle;white-space:nowrap}
+.mock tr:last-child td{border-bottom:0}
 .mock td.r,.mock th.r{text-align:right}
-.qty{display:inline-block;min-width:11mm;text-align:right;border:1px solid var(--rule);border-radius:1mm;padding:0 1.5mm;font-family:var(--f-num);font-weight:600;font-size:9pt}
-.badge{display:inline-block;font-size:6.8pt;padding:0 1.4mm;border-radius:1mm;line-height:1.7;font-weight:700}
-.b-sale{background:var(--pop);color:var(--ink)}
-.b-hol{background:#F6E2DB;color:var(--warn)}
-.b-warn{background:var(--warn);color:#fff}
-.b-ok{background:#DDEFE6;color:var(--ok)}
-.b-wait{background:#EEF2F0;color:var(--ink-soft)}
-.wx{display:inline-flex;gap:1mm;align-items:center}
-.wx svg{width:4.2mm;height:4.2mm}
-.diff{color:var(--rain);font-weight:700}
-.mock-foot{display:flex;justify-content:space-between;align-items:center;padding:2mm 3.5mm;font-size:7.6pt;background:#F6F8F7;flex-wrap:wrap;gap:2mm}
-.btn{border-radius:1mm;padding:.4mm 2.5mm;font-weight:700;font-size:7.6pt;border:1px solid var(--ink)}
-.btn.primary{background:var(--ink);color:var(--paper)}
+.mock td small{display:block;font-size:6.2pt;color:var(--ink-soft);line-height:1.3}
+.mock tr.warnrow td{background:#FFF9F0}
+.mock tr.warnrow td:first-child{box-shadow:inset 1mm 0 0 var(--app-band)}
+.mock tr.done td{color:var(--ink-soft)}
+.cb{display:inline-block;width:2.8mm;height:2.8mm;border:1px solid #8A9A95;border-radius:.5mm;vertical-align:middle;background:#fff}
+.cb.on{background:var(--focus,#2A6FDB);border-color:#2A6FDB;position:relative}
+.cb.on::after{content:"";position:absolute;left:.75mm;top:.2mm;width:.8mm;height:1.6mm;border:solid #fff;border-width:0 .4mm .4mm 0;transform:rotate(45deg)}
+.cb.off{opacity:.35}
+.qty{display:inline-block;min-width:11mm;text-align:right;border:1px solid #B9C6C1;border-radius:1mm;padding:.2mm 1.5mm;font-family:var(--f-num);font-weight:600;font-size:8.6pt;background:#fff}
+.qty.edit{background:#FFEBD0;border-color:#D9913A}
+.qty.plain{border-color:transparent;background:none;padding-left:0;min-width:0}
+.reason{display:inline-block;vertical-align:middle;font-size:6.2pt;border:1px solid #D9913A;border-radius:.8mm;padding:0 1.2mm;background:#fff;width:max-content}
+.inv{display:grid;grid-template-columns:repeat(3,auto);column-gap:2mm;font-family:var(--f-num);font-size:7.6pt;line-height:1.25;justify-content:start}
+.inv i{font-style:normal;font-family:var(--f-body);font-size:5.8pt;color:var(--ink-soft)}
+.badge{display:inline-block;font-size:6.4pt;padding:0 1.3mm;border-radius:1mm;line-height:1.7;font-weight:700}
+.b-sale{background:#E5ECEF;color:#3E5A66}
+.b-hol{background:#FBE3DD;color:var(--warn)}
+.b-warn{background:var(--app-warnbg);color:var(--app-warn)}
+.wx{display:flex;flex-direction:column;line-height:1.25}
+.wx small{display:inline}
+.diff{color:var(--app-warn);font-weight:700;font-size:7pt}
+.diff u{color:var(--app-green);font-weight:500;margin-left:1mm}
+.ops{display:flex;gap:1.5mm;align-items:center;justify-content:flex-end;font-size:6.6pt;color:var(--ink-soft)}
+.ops u{color:var(--app-green)}
+.stamp{width:7.2mm;height:7.2mm;border:.35mm solid var(--stamp);border-radius:50%;color:var(--stamp);display:inline-flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;font-family:var(--f-display);font-weight:900;font-size:6.2pt}
+.stamp small{font-size:3.8pt;font-weight:700;display:block}
+.app-selbar{display:flex;justify-content:space-between;align-items:center;gap:2mm;background:var(--app-dark);color:#fff;border-radius:1.2mm;padding:1.6mm 3mm;font-size:7.4pt;flex-wrap:wrap}
+.app-selbar .btn{border-color:rgba(255,255,255,.6);color:#fff;background:none}
+.app-selbar .btn.mint{background:#7FD3B4;border-color:#7FD3B4;color:#0F2E25}
+.btn{display:inline-block;border-radius:1mm;padding:.3mm 2.2mm;font-weight:700;font-size:7pt;border:1px solid #9AAAA5;background:#fff;color:var(--ink);white-space:nowrap}
+.btn.primary{background:var(--app-green,#1D7A55);border-color:var(--app-green,#1D7A55);color:#fff}
 .callouts{display:grid;grid-template-columns:repeat(4,1fr);gap:3mm}
 .callouts div{font-size:8pt;display:flex;flex-direction:column;gap:.8mm}
 .callouts b{font-size:8.6pt}
@@ -149,12 +182,12 @@ p{margin:0}
 
 /* ---------- 4ページ: データの扱いとヒアリング ---------- */
 .two{display:grid;grid-template-columns:1fr 1fr;gap:6mm}
-.two .panel{border:1px solid var(--rule);border-radius:2.5mm;background:#fff;padding:5mm 5.5mm;display:flex;flex-direction:column;gap:3mm}
-.two .panel h3{font-size:12.5pt}
+.two .panel{border:1px solid var(--rule);border-radius:2.5mm;background:#fff;padding:4mm 5mm;display:flex;flex-direction:column;gap:2.2mm}
+.two .panel h3{font-size:11.5pt}
 .two .panel p{font-size:8.8pt;color:var(--ink-soft)}
-.checks{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:1.6mm;font-size:9.2pt}
+.checks{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:1.1mm;font-size:8.8pt;line-height:1.6}
 .checks li{display:grid;grid-template-columns:4.5mm 1fr;gap:1.5mm}
-.checks li::before{content:"";width:3.4mm;height:3.4mm;border:1.2px solid var(--ink);border-radius:.6mm;margin-top:1.3mm}
+.checks li::before{content:"";width:3.2mm;height:3.2mm;border:1.2px solid var(--ink);border-radius:.6mm;margin-top:1.1mm}
 .secure li::before{border-radius:50%;background:var(--rain);border-color:var(--rain)}
 .kinds{display:grid;grid-template-columns:repeat(4,1fr);gap:3mm}
 .kind{border-top:2px solid var(--ink);padding-top:2mm;display:flex;flex-direction:column;gap:1.2mm}
@@ -164,21 +197,42 @@ p{margin:0}
 .kind .cols span{font-size:7pt;border:1px solid var(--rule);border-radius:1mm;padding:0 1.3mm;background:#fff;line-height:1.7}
 .kind .cols span.opt{border-style:dashed;color:var(--ink-soft)}
 .kind p{font-size:7.8pt;color:var(--ink-soft);line-height:1.55}
-.import-row{display:grid;grid-template-columns:1.25fr 1fr;gap:5mm;align-items:start}
-.rules{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:2mm;font-size:8.5pt}
-.rules li{display:grid;grid-template-columns:auto 1fr;gap:2mm;align-items:baseline}
+.rules{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(4,1fr);gap:3mm;font-size:7.8pt;line-height:1.55}
+.rules li{display:flex;flex-direction:column;gap:.8mm;align-items:flex-start}
 .rules li b{font-size:7.4pt;background:var(--rain-tint);color:var(--rain);padding:0 1.5mm;border-radius:1mm;white-space:nowrap}
-.mock-form{display:flex;flex-wrap:wrap;gap:2mm;align-items:center;padding:2mm 3.5mm;border-bottom:1px solid var(--rule);font-size:7.6pt}
-.mock-form span{border:1px solid var(--rule);border-radius:1mm;padding:0 2mm}
-.mock-form .btn{margin-left:auto}
-.mock-result{padding:1.5mm 3.5mm;font-size:7.6pt;background:#FFF8E0;border-bottom:1px solid var(--rule)}
+.app-import{display:grid;grid-template-columns:1.5fr 1fr;gap:2.5mm;align-items:start}
+.app-steps{padding:1.8mm 2.5mm;display:grid;grid-template-columns:auto 1fr;gap:1.4mm 4mm;align-items:start}
+.app-step{display:grid;grid-template-columns:4mm 1fr;gap:1.5mm;align-items:start;font-size:7.4pt}
+.app-step.wide{grid-column:1/-1;border-top:1px solid #EAF0ED;padding-top:1.4mm}
+.app-step .no{width:4mm;height:4mm;border-radius:50%;background:var(--app-dark);color:#fff;font-family:var(--f-num);font-size:6.4pt;font-weight:600;display:flex;align-items:center;justify-content:center}
+.app-step .body{display:flex;flex-direction:column;gap:.8mm}
+.app-step .body>b{font-size:7.4pt}
+.app-choices{display:flex;gap:1.2mm;flex-wrap:wrap}
+.app-choices span{border:1px solid #B9C6C1;border-radius:1mm;padding:0 2mm;font-size:7pt;background:#fff}
+.app-choices span.on{background:#E2F2EB;border-color:var(--app-green);color:var(--app-green);font-weight:700}
+.app-drop{border:1px dashed #A9B8B3;border-radius:1mm;padding:1.4mm 2mm;text-align:center;font-size:6.6pt;color:var(--ink-soft);line-height:1.4}
+.app-drop b{display:block;color:var(--ink);font-family:var(--f-num);font-weight:600;font-size:7.2pt}
+.app-file{display:flex;gap:2mm;align-items:center}
+.app-file .app-drop{flex:1}
+.app-result{padding:2mm 3mm;display:flex;flex-direction:column;gap:1.5mm}
+.app-result h5{margin:0;font-family:var(--f-display);font-size:8.6pt}
+.app-count{display:flex;gap:5mm}
+.app-count div{display:flex;flex-direction:column;line-height:1.1;font-size:6.4pt;color:var(--ink-soft)}
+.app-count b{font-family:var(--f-num);font-size:14pt;color:var(--ink);font-weight:600}
+.app-count b small{font-size:6.4pt;font-family:var(--f-body)}
+.app-count .skip b{color:var(--app-warn)}
+.app-skips{background:var(--app-warnbg);border-radius:1mm;padding:1.4mm 2mm;font-size:6.6pt;line-height:1.5}
+.app-skips ul{margin:.5mm 0 0;padding-left:1.1em}
+.app-hist{font-family:var(--f-display);font-size:8pt;margin:0}
 
 /* ---------- 画面幅が狭いとき(スマートフォン閲覧) ---------- */
 @media (max-width:820px){
   body{padding-block:12px}
   .sheet{width:100%;min-height:0;padding:22px 18px;margin-bottom:14px;gap:18px}
   .cover h1{font-size:26px}
-  .feat,.three,.voice,.principle,.calc,.callouts,.two,.kinds,.import-row{grid-template-columns:1fr}
+  .feat,.three,.voice,.principle,.calc,.callouts,.two,.kinds,.rules,.app-import{grid-template-columns:1fr}
+  .app-head{flex-direction:column;align-items:flex-start}
+  .app-dl{text-align:left}
   .flow{grid-template-columns:1fr}
   .flow .arrow{transform:rotate(90deg);justify-self:center}
   .week-grid{grid-template-columns:repeat(7,minmax(0,1fr))}
@@ -278,32 +332,40 @@ p{margin:0}
 </section>
 
 <!-- ================= 3ページ 画面と計算 ================= -->
-<section class="sheet" aria-label="MVPでできること">
+<section class="sheet" style="gap:4.5mm" aria-label="MVPでできること">
   <div class="eyebrow">MVPでできること</div>
   <h2>1画面で、根拠を見ながら決められます。</h2>
 
   <div class="mock" aria-label="生鮮の発注画面のイメージ">
-    <div class="mock-bar"><b>発注(生鮮) ─ 青果</b><span class="fresh">予測作成 18:42 ／ 予報取得 18:40 ／ 在庫基準 18:30</span></div>
-    <div class="mock-filter"><span>部門: 青果</span><span>納品日: 11/23(月・祝)</span><span>状態: すべて</span></div>
-    <div class="tbl-wrap">
+    <div class="app-head">
+      <div><h4>発注</h4><span class="sub">青果 11月23日(月・祝)納品分</span></div>
+      <div class="app-dl"><small>発注締め 11:00</small><b>あと 1時間42分</b></div>
+    </div>
+    <div class="app-filter">
+      <label>部門<span class="app-sel">青果 ▾</span></label>
+      <label>納品日<span class="app-sel num">2026/11/23</span></label>
+      <label>状態<span class="app-seg"><span>すべて</span><span class="on">未承認 3</span><span>承認済み 1</span><span>確定</span><span>期限切れ</span></span></label>
+    </div>
+    <div class="app-fresh"><span>予測作成 <b>11/22 08:30</b></span><span>予報取得 <b>08:00</b></span><span>在庫 <b>07:45</b>時点</span><span class="btn">再計算</span></div>
+    <div class="app-card tbl-wrap">
     <table>
-      <thead><tr><th>商品</th><th class="r">提案数</th><th class="r">予測</th><th>天気</th><th>イベント</th><th class="r">前週同曜日</th><th class="r">在庫・持越</th><th>状態</th></tr></thead>
+      <thead><tr><th></th><th>商品</th><th>提案数</th><th class="r">予測値</th><th class="r" style="white-space:nowrap">前週<br>同曜日</th><th>天候</th><th>祝日・特売</th><th>在庫・発注残<br>・持越見込</th><th>警告・差分</th><th class="r">状態・操作</th></tr></thead>
       <tbody>
-        <tr><td>キャベツ(入数6)</td><td class="r"><span class="qty">42</span></td><td class="r num">42.3</td><td><span class="wx"><svg><use href="#sun"/></svg>23℃ 0%</span></td><td><span class="badge b-hol">祝日</span></td><td class="r num">38</td><td class="r num">8</td><td><span class="badge b-wait">未承認</span></td></tr>
-        <tr><td>トマト(入数4)</td><td class="r"><span class="qty">36</span></td><td class="r num">31.0</td><td><span class="wx"><svg><use href="#sun"/></svg>23℃ 0%</span></td><td><span class="badge b-hol">祝日</span> <span class="badge b-sale">特売</span></td><td class="r num">22</td><td class="r num">0</td><td><span class="badge b-wait">未承認</span></td></tr>
-        <tr><td>きゅうり(入数10)</td><td class="r"><span class="qty">30</span></td><td class="r num">26.4</td><td><span class="wx"><svg><use href="#sun"/></svg>23℃ 0%</span></td><td><span class="badge b-hol">祝日</span></td><td class="r num">24</td><td class="r num">—</td><td><span class="badge b-warn">在庫未取込</span></td></tr>
-        <tr><td>玉ねぎ(入数10)</td><td class="r"><span class="qty">40</span></td><td class="r num">33.8</td><td><span class="wx"><svg><use href="#sun"/></svg>23℃ 0%</span></td><td><span class="badge b-hol">祝日</span></td><td class="r num">30</td><td class="r num">12</td><td><span class="badge b-ok">承認済</span> <span class="diff">再計算: 50(+10)</span></td></tr>
+        <tr><td><span class="cb on"></span></td><td>キャベツ<small>入数 6</small></td><td><span class="qty">42</span></td><td class="r num">42.3</td><td class="r num">38</td><td><span class="wx">晴れ 23℃<small>降水 0%</small></span></td><td><span class="badge b-hol">祝日</span></td><td><span class="inv"><i>在庫</i><i>発注残</i><i>持越</i><span>10</span><span>0</span><span>8</span></span></td><td></td><td><span class="ops">未承認<span class="btn primary">承認</span></span></td></tr>
+        <tr><td><span class="cb on"></span></td><td>トマト(4個パック)<small>入数 4</small></td><td><span class="qty edit">40</span> <span class="reason">特売・売場都合 ▾</span><small>提案 36 から変更</small></td><td class="r num">31.0</td><td class="r num">22</td><td><span class="wx">晴れ 23℃<small>降水 0%</small></span></td><td><span class="badge b-hol">祝日</span> <span class="badge b-sale">特売</span></td><td><span class="inv"><i>在庫</i><i>発注残</i><i>持越</i><span>0</span><span>0</span><span>0</span></span></td><td></td><td><span class="ops"><span class="btn primary">保存</span></span></td></tr>
+        <tr class="warnrow"><td><span class="cb"></span></td><td>きゅうり(3本袋)<small>入数 10</small></td><td><span class="qty">30</span></td><td class="r num">26.4</td><td class="r num">24</td><td><span class="wx">晴れ 23℃<small>降水 0%</small></span></td><td><span class="badge b-hol">祝日</span></td><td><span class="inv"><i>在庫</i><i>発注残</i><i>持越</i><span>—</span><span>0</span><span>—</span></span></td><td><span class="badge b-warn">在庫未取込</span></td><td><span class="ops">未承認<span class="btn primary">承認</span></span></td></tr>
+        <tr class="done"><td><span class="cb off"></span></td><td>玉ねぎ(3個袋)<small>入数 10</small></td><td><span class="qty plain">40</span></td><td class="r num">33.8</td><td class="r num">30</td><td><span class="wx">晴れ 23℃<small>降水 0%</small></span></td><td><span class="badge b-hol">祝日</span></td><td><span class="inv"><i>在庫</i><i>発注残</i><i>持越</i><span>9</span><span>0</span><span>3</span></span></td><td><span class="diff">再計算: 50(+10)<br><u style="margin-left:0">採用</u></span></td><td><span class="ops"><u>取消</u><span class="stamp"><small>承認</small>佐藤</span></span></td></tr>
       </tbody>
     </table>
     </div>
-    <div class="mock-foot"><span class="muted">警告のある行は一括承認の対象外です</span><span style="display:flex;gap:2mm"><span class="btn">再計算</span><span class="btn primary">選んだ行をまとめて承認</span></span></div>
+    <div class="app-selbar"><span>2件を選んでいます</span><span style="display:flex;gap:2mm"><span class="btn">選択を外す</span><span class="btn mint">選んだ2件を承認</span></span></div>
   </div>
 
   <div class="callouts">
-    <div><span class="c">鮮度</span><b>いつの情報で計算したか</b><span class="muted">予測・予報・在庫の時刻を上部に表示します。</span></div>
-    <div><span class="c">根拠</span><b>数の理由が同じ行に</b><span class="muted">天気・祝日・特売・前週の実績・在庫を並べます。</span></div>
-    <div><span class="c">警告</span><b>不確かな提案は目立たせる</b><span class="muted">在庫や予報が無い行は、1件ずつ確認して承認します。</span></div>
-    <div><span class="c">差分</span><b>承認後も勝手に変えない</b><span class="muted">再計算の結果は差分として示し、採用するかは担当者が選びます。</span></div>
+    <div><span class="c">締め</span><b>締めまでの残り時間</b><span class="muted">発注締めまでの残り時間を右上に大きく表示します。</span></div>
+    <div><span class="c">根拠</span><b>数の理由が同じ行に</b><span class="muted">天気・祝日・特売・前週の実績・在庫を並べ、予測・予報・在庫の時刻も示します。</span></div>
+    <div><span class="c">警告</span><b>不確かな提案は目立たせる</b><span class="muted">在庫や予報が無い行は左端の色帯で示し、1件ずつ確認して承認します。</span></div>
+    <div><span class="c">差分</span><b>承認後も勝手に変えない</b><span class="muted">承認は担当者の印で表示。再計算の結果は差分として示し、採用するかは担当者が選びます。</span></div>
   </div>
 
   <div class="calc">
@@ -340,7 +402,7 @@ p{margin:0}
     </div>
   </div>
 
-  <div class="folio"><span>画面・数値はいずれも説明用の例です</span><span class="num">3 / 4</span></div>
+  <div class="folio"><span>画面はデザイン案、数値は説明用の例です</span><span class="num">3 / 4</span></div>
 </section>
 
 <!-- ================= 4ページ データの扱いとヒアリング ================= -->
@@ -355,31 +417,39 @@ p{margin:0}
     <div class="kind"><b>廃棄</b><span class="file">waste.csv ／ 部門ごと</span><div class="cols"><span>廃棄日</span><span>商品コード</span><span>数量</span></div><p>予測の振り返りと、廃棄・欠品の評価に使います。</p></div>
   </div>
 
-  <div class="import-row">
-    <div class="mock" aria-label="データ取込画面のイメージ">
-      <div class="mock-bar"><b>データ取込</b><span class="fresh">CSV(UTF-8、日付は YYYY-MM-DD)</span></div>
-      <div class="mock-form"><span>種類: POS売上</span><span>部門: 惣菜</span><span>pos_sales.csv</span><span class="btn primary">取り込む</span></div>
-      <div class="mock-result">取込 1,284件、スキップ 2件 ─ 37行目: 未登録の商品コード ／ 52行目: 数量が負の数</div>
-      <div class="tbl-wrap">
-      <table>
-        <thead><tr><th>日時</th><th>種類</th><th>部門</th><th>ファイル</th><th class="r">取込</th><th class="r">スキップ</th><th>取込者</th></tr></thead>
-        <tbody>
-          <tr><td class="num">10/30 19:05</td><td>POS売上</td><td>惣菜</td><td>pos_sales.csv</td><td class="r num">1,284</td><td class="r num">2</td><td>惣菜担当</td></tr>
-          <tr><td class="num">10/30 18:58</td><td>在庫</td><td>青果</td><td>inventory.csv</td><td class="r num">6</td><td class="r num">0</td><td>青果担当</td></tr>
-          <tr><td class="num">10/30 18:52</td><td>廃棄</td><td>鮮魚</td><td>waste.csv</td><td class="r num">4</td><td class="r num">0</td><td>鮮魚担当</td></tr>
-          <tr><td class="num">10/29 09:10</td><td>商品マスタ</td><td>—</td><td>products.csv</td><td class="r num">15</td><td class="r num">0</td><td>店長</td></tr>
-        </tbody>
-      </table>
+  <div class="mock" aria-label="データ取込画面のイメージ">
+    <div class="app-head">
+      <div><h4>データ取込</h4> <span class="sub">標準取込形式の CSV(文字コードは UTF-8、日付は YYYY-MM-DD)を取り込みます。</span></div>
+    </div>
+    <div class="app-import">
+      <div class="app-card app-steps">
+        <div class="app-step"><span class="no">1</span><div class="body"><b>種類を選ぶ</b><div class="app-choices"><span>商品マスタ</span><span class="on">POS売上</span><span>在庫</span><span>廃棄</span></div></div></div>
+        <div class="app-step"><span class="no">2</span><div class="body"><b>部門を選ぶ</b><div><span class="app-sel">惣菜 ▾</span></div></div></div>
+        <div class="app-step wide"><span class="no">3</span><div class="body"><b>CSVファイルを選ぶ</b><div class="app-file"><div class="app-drop"><b>pos_sales.csv</b>284 KB ここにファイルを置くか、クリックして選び直す</div><span class="btn primary">取り込む</span></div></div></div>
+      </div>
+      <div class="app-card app-result">
+        <h5>取込結果</h5>
+        <div class="app-count"><div>取込<b>1,284<small>件</small></b></div><div class="skip">スキップ<b>2<small>件</small></b></div></div>
+        <div class="app-skips">スキップした行は直して取り込み直してください。<ul><li>37行目: 商品コード 100999 が商品マスタにありません</li><li>52行目: 数量が負の数です</li></ul></div>
       </div>
     </div>
-    <ul class="rules">
-      <li><b>止まらない</b><span>おかしな行だけを飛ばして取り込み、行番号と理由を画面に表示します。</span></li>
-      <li><b>やり直せる</b><span>同じ日付(在庫は同じ基準日時)・同じ商品を取り込み直すと、新しい内容で置き換わります。</span></li>
-      <li><b>記録が残る</b><span>いつ・誰が・どのファイルを・何件取り込んだかを履歴に残します。</span></li>
-      <li><b>形式はこちらで合わせる</b><span>お店のPOSの出力形式が違っても、変換の仕組みを研究室で用意します。</span></li>
-    </ul>
+    <p class="app-hist">取込履歴</p>
+    <div class="app-card tbl-wrap">
+    <table>
+      <thead><tr><th>日時</th><th>種類</th><th>部門</th><th>ファイル</th><th class="r">取込</th><th class="r">スキップ</th><th>取込者</th></tr></thead>
+      <tbody>
+        <tr><td class="num">10/30 19:05</td><td>POS売上</td><td>惣菜</td><td>pos_sales.csv</td><td class="r num">1,284</td><td class="r num" style="color:var(--app-warn)">2</td><td>惣菜担当</td></tr>
+        <tr><td class="num">10/30 18:58</td><td>在庫</td><td>青果</td><td>inventory.csv</td><td class="r num">6</td><td class="r num">0</td><td>青果担当</td></tr>
+      </tbody>
+    </table>
+    </div>
   </div>
-  <p class="note">画面と件数は説明用の例です。取込履歴の画面は、開発中の試作版の「データ取込」画面をもとにしています。</p>
+  <ul class="rules">
+    <li><b>止まらない</b><span>おかしな行だけを飛ばして取り込み、行番号と理由を画面に表示します。</span></li>
+    <li><b>やり直せる</b><span>同じ日付(在庫は同じ基準日時)・同じ商品を取り込み直すと、新しい内容で置き換わります。</span></li>
+    <li><b>記録が残る</b><span>いつ・誰が・どのファイルを・何件取り込んだかを履歴に残します。</span></li>
+    <li><b>形式はこちらで合わせる</b><span>お店のPOSの出力形式が違っても、変換の仕組みを研究室で用意します。</span></li>
+  </ul>
 
   <div class="two">
     <div class="panel">
@@ -407,5 +477,5 @@ p{margin:0}
     </div>
   </div>
 
-  <div class="folio"><span>スーパーマーケットDX ─ 発注アシスタント MVPのご提案</span><span class="num">4 / 4</span></div>
+  <div class="folio"><span>画面はデザイン案、件数は説明用の例です</span><span class="num">4 / 4</span></div>
 </section>
