@@ -196,3 +196,18 @@ def test_launch_parallel_runs_jobs_concurrently(monkeypatch):
     assert len(tasks.tasks) == 1
     tasks.tasks[0].func(*tasks.tasks[0].args)
     assert sorted(done) == [1, 2, 3]
+
+
+def test_launcher_logs_exception_outside_job(monkeypatch, caplog):
+    """ジョブの外で起きた例外(DB に接続できない等)は、並行実行のスレッドで消えずにログに残る。"""
+    from smdx_api.proposals import service
+
+    def broken_run_job(*args):
+        raise RuntimeError("DB に接続できません")
+
+    monkeypatch.setattr(service, "run_job", broken_run_job)
+    launcher = service.JobLauncher(lambda: None, None, lambda: None)
+    with caplog.at_level("ERROR", logger="smdx_api.proposals.service"):
+        launcher._run_all([(7, FreshTargets(None))])
+    assert "再計算ジョブ 7 を実行できませんでした" in caplog.text
+    assert "DB に接続できません" in caplog.text

@@ -2,6 +2,7 @@
 
 部門の business_type で生鮮(order: 商品ごとの最も早い納品日)と惣菜(production: 対象日の時間帯)を振り分ける。
 """
+import logging
 from collections.abc import Callable, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta
@@ -20,6 +21,8 @@ from smdx_api.proposals.jobs import JobKey, run_job, running_job, start_or_get_j
 from smdx_api.proposals.rules import ProposalFreshness, is_stale
 from smdx_api.proposals.schedule import deli_default_target, open_bands
 from smdx_api.settings.values import AppSettings
+
+log = logging.getLogger(__name__)
 
 
 def is_production(department: Department) -> bool:
@@ -119,7 +122,12 @@ class JobLauncher:
             background_tasks.add_task(self._run_all, list(jobs))
 
     def run(self, job_id: int, targets: FreshTargets) -> None:
-        run_job(job_id, targets, self.session_factory, self.services, self.now_fn, self.clock)
+        # 計算中の例外は run_job がジョブの失敗にする。セッションの開始やジョブの読み込みで起きた例外
+        # (DB に接続できない等)は外に出るので、並行実行のスレッドで黙って消えないようにログに残す
+        try:
+            run_job(job_id, targets, self.session_factory, self.services, self.now_fn, self.clock)
+        except Exception:
+            log.exception("再計算ジョブ %s を実行できませんでした", job_id)
 
     def _run_all(self, jobs: list[tuple[int, FreshTargets]]) -> None:
         # ジョブごとに1スレッド・1セッション(DB 接続)を使う。run_job は例外を外に出さない

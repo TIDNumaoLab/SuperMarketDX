@@ -45,6 +45,7 @@ export function minutesLeft(deadline: string, now: Date): number {
 }
 
 // 時間軸の印。生鮮はリードタイムにより同じ締め時刻に納品日の違うまとまりが並ぶので、同じ期限は1つの印にまとめる
+// (惣菜は時間帯ごとに1つの印とし、まとめない)
 export interface TimelineMark {
   deadline: string;
   groups: DashboardDeadline[];
@@ -52,14 +53,15 @@ export interface TimelineMark {
   expired: number;
 }
 
-export function marksByDeadline(groups: DashboardDeadline[]): TimelineMark[] {
+export function marksByDeadline(groups: DashboardDeadline[], merge: boolean): TimelineMark[] {
   const out = new Map<string, TimelineMark>();
   for (const g of groups) {
-    const m = out.get(g.deadline) ?? { deadline: g.deadline, groups: [], pending: 0, expired: 0 };
+    const key = merge ? g.deadline : `${g.deadline}-${g.target_date}-${g.time_band}`;
+    const m = out.get(key) ?? { deadline: g.deadline, groups: [], pending: 0, expired: 0 };
     m.groups.push(g);
     m.pending += g.pending;
     m.expired += g.expired;
-    out.set(g.deadline, m);
+    out.set(key, m);
   }
   return [...out.values()];
 }

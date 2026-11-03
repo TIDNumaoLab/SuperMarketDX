@@ -61,9 +61,14 @@ function markTargetLabel(m: TimelineMark): string {
   return `${m.groups.map((g) => formatMonthDay(g.target_date)).join("・")} 納品分`;
 }
 
-// 納品日の違うまとまりをまとめた印は、対象日を選ばず既定表示(各商品の最も早い納品日)で開く
-function markLink(d: DashboardDepartment, m: TimelineMark): string {
+// 納品日の違うまとまりをまとめた印は、対象日を選ばず既定表示(各商品の最も早い納品日)で開く。
+// 期限切れがあれば、締め後の既定表示には出ないので、期限切れのある最も早い納品日を選んで開く
+function markLink(d: DashboardDepartment, m: TimelineMark, state: MarkState): string {
   if (m.groups.length === 1) return screenLink(d, m.groups[0]);
+  if (state === "missed") {
+    const first = m.groups.filter((g) => g.expired > 0).sort((a, b) => a.target_date.localeCompare(b.target_date))[0];
+    return screenLink(d, first);
+  }
   return `${isProduction(d) ? "/production" : "/orders"}?${new URLSearchParams({ department: d.department_code })}`;
 }
 
@@ -106,6 +111,7 @@ function Timeline({ data, axis }: { data: Dashboard; axis: Axis }) {
         {data.departments.map((d) => {
           const marks = marksByDeadline(
             data.deadlines.filter((g) => g.department_code === d.department_code && jstDate(g.deadline) === today),
+            !isProduction(d),
           );
           const positions = marks.map((m) => positionPercent(m.deadline, axis));
           const above = staggerAbove(positions, 12);
@@ -123,8 +129,8 @@ function Timeline({ data, axis }: { data: Dashboard; axis: Axis }) {
                   const label = `${formatTime(g.deadline)} ${band === null ? "締め" : `${band}時の部`}`;
                   return (
                     <Link
-                      key={g.deadline}
-                      to={markLink(d, g)}
+                      key={`${g.deadline}-${g.groups[0].target_date}-${g.groups[0].time_band}`}
+                      to={markLink(d, g, state)}
                       className={`${styles.mark} ${styles[state]} ${above[i] ? styles.above : ""}`}
                       style={{ left: `${positions[i]}%` }}
                       aria-label={`${d.department_name} ${markTargetLabel(g)} ${kind} ${formatTime(g.deadline)} ${stateText(state, g, now)}`}

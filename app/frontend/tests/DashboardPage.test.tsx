@@ -106,6 +106,37 @@ test("groups with the same deadline in a lane share one mark", async () => {
   expect(within(veg).getByText("3")).toBeInTheDocument();
 });
 
+test("a merged mark with expired proposals opens the earliest expired delivery date", async () => {
+  vi.mocked(dashboardApi.getDashboard).mockResolvedValue(
+    dashboard({
+      deadlines: [
+        deadline({ deadline: "2026-10-16T09:00:00+09:00", target_date: "2026-10-17", approved: 2 }),
+        deadline({ deadline: "2026-10-16T09:00:00+09:00", target_date: "2026-10-18", expired: 1 }),
+      ],
+    }),
+  );
+  await renderPage(<DashboardPage />, manager(), "今日の状況");
+  const veg = await screen.findByRole("link", { name: "青果 10/17・10/18 納品分 発注締め 09:00 締め済み 期限切れ1件" });
+  expect(veg).toHaveAttribute("href", "/orders?department=VEG&target_date=2026-10-18");
+});
+
+test("deli bands with the same production start keep separate marks", async () => {
+  vi.mocked(dashboardApi.getDashboard).mockResolvedValue(
+    dashboard({
+      deadlines: [
+        deadline({ department_code: "DELI", deadline: "2026-10-16T16:00:00+09:00", target_date: "2026-10-16", time_band: 17, pending: 1 }),
+        deadline({ department_code: "DELI", deadline: "2026-10-16T16:00:00+09:00", target_date: "2026-10-16", time_band: 18, pending: 2 }),
+      ],
+    }),
+  );
+  await renderPage(<DashboardPage />, manager(), "今日の状況");
+  expect(await screen.findByRole("link", { name: "惣菜 10/16 17時の部 製造開始 16:00 未承認1件" })).toHaveAttribute(
+    "href",
+    "/production?department=DELI&target_date=2026-10-16",
+  );
+  expect(screen.getByRole("link", { name: "惣菜 10/16 18時の部 製造開始 16:00 未承認2件" })).toBeInTheDocument();
+});
+
 test("lists pending groups by deadline with warnings and bulk count", async () => {
   await renderPage(<DashboardPage />, manager(), "今日の状況");
   const list = await screen.findByRole("list", { name: "締めが近い順の未承認" });
