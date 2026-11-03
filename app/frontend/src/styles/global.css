@@ -14,6 +14,23 @@
   --stamp: #c23b2c; /* 承認印・祝日・エラー */
   --stamp-soft: #fbe9e6;
   --focus: #2a6fdb;
+  /* 上の色の補助(濃い文字・薄い地) */
+  --paper-2: #f7faf9; /* 表の見出し・月の外の日 */
+  --desk: #dce3e1; /* 印刷見本を置く台 */
+  --sheet-line: #c9d3d0; /* 印刷見本の罫線 */
+  --fresh-ink: #0d4d3a; /* 完了の知らせの文字 */
+  --amber-ink: #5e3204; /* 注意の知らせの文字 */
+  --amber-line: #e2a33b; /* 警告行の左の色帯 */
+  --amber-wash: #fffbf2; /* 警告行の地 */
+  --stamp-ink: #8a1c1c; /* エラーの文字 */
+  --info: #2b4a55; /* バッジ・行事日の文字 */
+  --info-soft: #e6eef0;
+  --saturday: #2a5db0;
+  --pending: #2e6e94; /* 今日の状況の未承認(詳細設計書の色分けで青) */
+  --closed: #a9b6be; /* 今日の状況の締め済み */
+  --closed-soft: #f3f6f8;
+  --side-ink-2: #b9d0c8; /* サイドバーの補足の文字 */
+  --side-accent: #7fd3b4; /* サイドバーの現在の画面の線 */
 }
 
 * {

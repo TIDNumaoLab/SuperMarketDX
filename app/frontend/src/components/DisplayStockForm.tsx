@@ -61,7 +61,7 @@ export default function DisplayStockForm({ departmentCode, products, onSaved }: 
       </p>
       <ErrorBanner message={error} />
       {message && <div className={styles.notice}>{message}</div>}
-      <div className={styles.toolbar} style={{ marginBottom: 0 }}>
+      <div className={`${styles.toolbar} ${styles.flush}`}>
         {products.map((p) => (
           <label key={p.product_code} className={styles.field}>
             {p.name}
@@ -70,7 +70,7 @@ export default function DisplayStockForm({ departmentCode, products, onSaved }: 
               min={0}
               step={1}
               aria-label={`${p.name} の陳列残数`}
-              style={{ width: 110 }}
+              className={styles.qtyInput}
               value={values[p.product_code] ?? ""}
               onChange={(e) => setValues({ ...values, [p.product_code]: e.target.value })}
             />

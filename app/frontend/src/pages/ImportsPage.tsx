@@ -97,7 +97,7 @@ export default function ImportsPage() {
               </label>
             </li>
           </ol>
-          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
+          <div className={styles.actions}>
             <button type="submit" className={styles.primary} disabled={!file || busy}>
               取り込む
             </button>
@@ -114,7 +114,7 @@ export default function ImportsPage() {
               {result.errors.length > 0 && (
                 <>
                   <p className={styles.muted}>スキップした行は直して取り込み直してください。</p>
-                  <ul style={{ margin: 0, paddingLeft: 18, fontSize: 14 }}>
+                  <ul className={styles.errorList}>
                     {result.errors.map((er) => (
                       <li key={er.row}>
                         {er.row}行目: {er.reason}

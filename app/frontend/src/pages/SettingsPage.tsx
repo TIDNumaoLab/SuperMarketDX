@@ -5,6 +5,7 @@ import { errorMessage, statusOf } from "../api/client";
 import { getSettings, putSettings } from "../api/settings";
 import { useAuth } from "../auth/AuthContext";
 import ErrorBanner from "../components/ErrorBanner";
+import { savebarHint } from "../components/savebarHint";
 import styles from "../styles/page.module.css";
 import type { Settings } from "../types/api";
 
@@ -23,10 +24,12 @@ const RETRAIN = "時間帯別モデルの再学習が必要です";
 const GROUPS = ["店舗", "生鮮の発注", "惣菜の製造"] as const;
 type Group = (typeof GROUPS)[number];
 
-function groupOf(key: string, types: Record<string, string>): Group {
+// 部門の業務は設定のキーで決める(発注締め時刻があるのは生鮮の部門だけ)。
+// 設定は全部門の分が返るため、利用者の閲覧できる部門(/api/me)では決められない
+export function groupOf(key: string, s: Settings): Group {
   if (key === "business_hours" || key === "weather_stale_hours") return "店舗";
   if (key.startsWith("deli_")) return "惣菜の製造";
-  if (key.startsWith("safety_factor.") && types[key.slice("safety_factor.".length)] === "production") return "惣菜の製造";
+  if (key.startsWith("safety_factor.") && !(`order_cutoff.${key.slice("safety_factor.".length)}` in s)) return "惣菜の製造";
   return "生鮮の発注";
 }
 
@@ -78,7 +81,6 @@ export default function SettingsPage() {
   const { me } = useAuth();
   const editable = me?.role === "manager";
   const names = Object.fromEntries((me?.accessible_departments ?? []).map((d) => [d.code, d.name]));
-  const types = Object.fromEntries((me?.accessible_departments ?? []).map((d) => [d.code, d.business_type]));
   const [settings, setSettings] = useState<Settings | null>(null);
   const [inputs, setInputs] = useState<Record<string, string>>({});
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -106,6 +108,7 @@ export default function SettingsPage() {
   const original = toInputs(settings);
   const items = itemsOf(settings, names);
   const set = (k: string, v: string) => setInputs({ ...inputs, [k]: v });
+  const hint = savebarHint(error, Object.keys(fieldErrors).length > 0);
 
   function changes(): Settings | null {
     const out: Settings = {};
@@ -202,7 +205,7 @@ export default function SettingsPage() {
       return Object.keys(original)
         .filter((x) => x.startsWith(`${k}.`))
         .map((x) => (
-          <span key={x} style={{ marginRight: 12 }}>
+          <span key={x} className={styles.startItem}>
             {x.slice(k.length + 1)}時〜 {input(x, "time", `製造開始時刻(${x.slice(k.length + 1)}時〜)`)}
           </span>
         ));
@@ -217,25 +220,24 @@ export default function SettingsPage() {
     <section>
       <h1>設定</h1>
       <ErrorBanner message={error} />
-      {message && <div className={styles.notice}>{message}</div>}
       {retrain && <div className={styles.warnNotice}>{RETRAIN}</div>}
       <form onSubmit={onSubmit} noValidate>
         {GROUPS.map((group) => {
-          const rows = items.filter((item) => groupOf(item.key, types) === group);
+          const rows = items.filter((item) => groupOf(item.key, settings) === group);
           if (rows.length === 0) return null;
           return (
-            <div key={group} style={{ marginBottom: 18 }}>
-              <h2 style={{ fontSize: 16 }}>{group}</h2>
+            <div key={group} className={styles.group}>
+              <h2>{group}</h2>
               <div className={styles.tableWrap}>
                 <table className={styles.table}>
                   <tbody>
                     {rows.map((item) => (
                       <tr key={item.key}>
-                        <th style={{ width: 240, fontWeight: 400 }}>
+                        <th className={styles.rowLabel}>
                           {labelled(item) ? <label htmlFor={item.key}>{item.label}</label> : item.label}
                         </th>
                         <td>{valueCell(item)}</td>
-                        <td role={fieldErrors[item.key] ? "alert" : undefined} style={{ color: "var(--stamp)", fontSize: 13 }}>
+                        <td role={fieldErrors[item.key] ? "alert" : undefined} className={styles.fieldError}>
                           {fieldErrors[item.key] ?? ""}
                         </td>
                       </tr>
@@ -249,6 +251,11 @@ export default function SettingsPage() {
         {editable && (
           <div className={styles.savebar}>
             <span className={styles.muted}>変えた項目だけが保存されます。</span>
+            {/* 保存の結果は、ボタンを押した位置で分かるよう帯の中に出す */}
+            <span role="status" className={styles.saved}>
+              {message}
+            </span>
+            {hint && <span className={styles.hint}>{hint}</span>}
             <span className={styles.spacer} />
             <button type="submit" className={styles.primary}>
               保存

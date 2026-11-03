@@ -108,7 +108,7 @@ export default function PromotionsPage() {
 
       <form className={styles.panel} onSubmit={onSubmit} noValidate>
         <h2>{editingId === null ? "特売を登録" : "特売を編集"}</h2>
-        <div className={styles.toolbar} style={{ marginBottom: 0 }}>
+        <div className={`${styles.toolbar} ${styles.flush}`}>
         <label className={styles.field}>
           商品
           <select value={productCode} onChange={(e) => setForm({ ...form, product_code: e.target.value })}>
@@ -127,7 +127,7 @@ export default function PromotionsPage() {
           終了日
           <input type="date" value={form.end_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} />
         </label>
-        <label className={styles.field} style={{ flex: 1 }}>
+        <label className={`${styles.field} ${styles.grow}`}>
           内容
           <input value={form.description} maxLength={128} onChange={(e) => setForm({ ...form, description: e.target.value })} />
         </label>
@@ -180,7 +180,7 @@ export default function PromotionsPage() {
                 <td>{p.created_by_name ?? "システム"}</td>
                 <td>
                   {accessible.has(p.department_code) && (
-                    <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
+                    <div className={styles.rowButtons}>
                       <button type="button" className={styles.secondary} onClick={() => startEdit(p)}>
                         編集
                       </button>

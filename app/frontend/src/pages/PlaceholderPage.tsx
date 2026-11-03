@@ -10,7 +10,7 @@ export default function PlaceholderPage({ title }: Props) {
     <section>
       <h1>{title}</h1>
       <div className={styles.panel}>
-        <p style={{ margin: 0 }}>この画面は準備中です。</p>
+        <p className={styles.bare}>この画面は準備中です。</p>
       </div>
     </section>
   );

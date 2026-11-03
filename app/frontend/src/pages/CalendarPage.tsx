@@ -127,10 +127,14 @@ export default function CalendarPage() {
           {monthGrid(year, month).map((week, i) => (
             <tr key={i}>
               {week.map((date, j) => (
-                <td key={j} className={dayClass(date, j)}>
+                <td key={j} className={dayClass(date, j)} aria-current={date === today ? "date" : undefined}>
                   {date && (
                     <>
-                      <div className={calStyles.d}>{Number(date.slice(8, 10))}</div>
+                      <div className={calStyles.d}>
+                        {Number(date.slice(8, 10))}
+                        {/* 今日は色だけでなく文字でも示す */}
+                        {date === today && <span className={calStyles.todayLabel}>今日</span>}
+                      </div>
                       {(byDate.get(date) ?? []).map((d) => (
                         <div key={d.id} className={`${calStyles.ev} ${d.kind === "holiday" ? calStyles.holiday : ""}`}>
                           {d.name}
@@ -153,7 +157,7 @@ export default function CalendarPage() {
       </div>
 
       <form className={`${styles.panel} ${calStyles.form}`} onSubmit={onRegister}>
-        <h2 style={{ margin: 0 }}>行事日を登録</h2>
+        <h2 className={styles.bare}>行事日の登録</h2>
         <label className={styles.field}>
           日付
           <input type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} />

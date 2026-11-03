@@ -21,7 +21,7 @@
 
 .departments {
   font-size: 13px;
-  color: #b9d0c8;
+  color: var(--side-ink-2);
   margin-top: 2px;
 }
 
@@ -47,7 +47,7 @@
 
 .active {
   background: rgba(255, 255, 255, 0.12);
-  border-left-color: #7fd3b4;
+  border-left-color: var(--side-accent);
   font-weight: 700;
 }
 

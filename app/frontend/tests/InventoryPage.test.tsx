@@ -73,3 +73,28 @@ test("now button resets based_at and empty based_at is rejected", async () => {
   fireEvent.click(screen.getByRole("button", { name: "現在時刻にする" }));
   expect(screen.getByLabelText("基準日時")).not.toHaveValue("");
 });
+
+test("save bar shows the entered count and the result", async () => {
+  await renderPage(<InventoryPage />, staff(VEG), "在庫入力");
+  await screen.findByText("前回 8(10/15 20:00)");
+  expect(screen.getByText("0件")).toBeInTheDocument();
+  const user = userEvent.setup();
+  await user.type(screen.getByLabelText("キャベツ の在庫数"), "12");
+  await user.type(screen.getByLabelText("トマト の在庫数"), "3");
+  expect(screen.getByText("2件")).toBeInTheDocument();
+  expect(screen.getByLabelText("キャベツ の在庫数")).toHaveClass("filled");
+  await user.clear(screen.getByLabelText("トマト の在庫数"));
+  expect(screen.getByText("1件")).toBeInTheDocument();
+  expect(screen.getByLabelText("トマト の在庫数")).not.toHaveClass("filled");
+  // 保存の結果は、画面下の帯の中に出す(表の下の方で保存しても見える)
+  await user.click(screen.getByRole("button", { name: "保存" }));
+  expect(await screen.findByRole("status")).toHaveTextContent("保存しました(1件)");
+});
+
+test("save bar tells that an error is shown above", async () => {
+  await renderPage(<InventoryPage />, staff(VEG), "在庫入力");
+  await screen.findByText("前回 8(10/15 20:00)");
+  await userEvent.setup().click(screen.getByRole("button", { name: "保存" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("在庫数を入力してください");
+  expect(screen.getByText("エラーがあります(画面の上に表示しています)")).toBeInTheDocument();
+});

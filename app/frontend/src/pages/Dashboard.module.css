@@ -144,8 +144,8 @@
   font-size: 0.85rem;
   font-weight: bold;
   background: var(--surface);
-  border: 2px solid #2e6e94;
-  color: #2e6e94;
+  border: 2px solid var(--pending);
+  color: var(--pending);
   box-sizing: border-box;
 }
 
@@ -159,13 +159,13 @@
 }
 
 .done .pin {
-  border-color: #a9b6be;
-  color: #a9b6be;
-  background: #f3f6f8;
+  border-color: var(--closed);
+  color: var(--closed);
+  background: var(--closed-soft);
 }
 
 .done .t {
-  color: #a9b6be;
+  color: var(--closed);
 }
 
 .missed .pin {
@@ -184,7 +184,7 @@
 }
 
 .pending .pin {
-  background: #2e6e94;
+  background: var(--pending);
   color: #fff;
 }
 
@@ -252,13 +252,13 @@
   border-radius: 8px;
   vertical-align: -1px;
   margin-right: 4px;
-  border: 2px solid #2e6e94;
+  border: 2px solid var(--pending);
   box-sizing: border-box;
 }
 
 .lDone::before {
-  border-color: #a9b6be !important;
-  background: #f3f6f8;
+  border-color: var(--closed) !important;
+  background: var(--closed-soft);
 }
 
 .lReady::before {
@@ -266,7 +266,7 @@
 }
 
 .lPending::before {
-  background: #2e6e94;
+  background: var(--pending);
 }
 
 .lMissed::before {
@@ -414,7 +414,7 @@
 }
 
 .status thead th {
-  background: #f7faf9;
+  background: var(--paper-2);
   font-weight: normal;
   color: var(--ink-2);
 }

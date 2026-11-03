@@ -11,11 +11,11 @@
 
 /* 警告のある行は背景と左端の色帯で目立たせる */
 .warned {
-  background: #fffbf2;
+  background: var(--amber-wash);
 }
 
 .warned > td:first-child {
-  box-shadow: inset 4px 0 0 #e2a33b;
+  box-shadow: inset 4px 0 0 var(--amber-line);
 }
 
 /* 承認済み・確定の行は文字を控えめにする */
@@ -35,8 +35,8 @@
   margin: 1px 3px 1px 0;
   border-radius: 10px;
   font-size: 12px;
-  background: #e6eef0;
-  color: #2b4a55;
+  background: var(--info-soft);
+  color: var(--info);
   white-space: nowrap;
 }
 
@@ -120,15 +120,16 @@
   font-size: 13px;
 }
 
-/* 承認者の印。名前の長さに合わせて横に伸びる */
+/* 承認者の印。名前の長さに合わせて横に伸びる。
+   行の高さを変えないよう、文字2行分(状態の欄の高さ)より低くする */
 .stamp {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 42px;
-  height: 42px;
-  padding: 0 8px;
-  border-radius: 21px;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 7px;
+  border-radius: 17px;
   border: 2px solid var(--stamp);
   color: var(--stamp);
   font-size: 13px;

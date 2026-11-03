@@ -6,6 +6,7 @@ import { getLatestInventory, putInventory } from "../api/inventory";
 import { useAuth } from "../auth/AuthContext";
 import DepartmentSelect, { selectableDepartments } from "../components/DepartmentSelect";
 import ErrorBanner from "../components/ErrorBanner";
+import { savebarHint } from "../components/savebarHint";
 import { formatShortDateTime, jstNowInput, toJstIso } from "../format";
 import styles from "../styles/page.module.css";
 import type { InventoryLatest } from "../types/api";
@@ -70,6 +71,7 @@ export default function InventoryPage() {
   }
 
   const filledCount = rows.filter((r) => (inputs[r.product_code] ?? "").trim() !== "").length;
+  const hint = savebarHint(error);
 
   return (
     <section>
@@ -80,7 +82,6 @@ export default function InventoryPage() {
         </div>
       </div>
       <ErrorBanner message={error} />
-      {message && <div className={styles.notice}>{message}</div>}
       {/* 入力の検証は画面の文言で出すため、ブラウザの検証は使わない */}
       <form onSubmit={onSubmit} noValidate>
         <div className={styles.toolbar}>
@@ -97,10 +98,9 @@ export default function InventoryPage() {
               required
             />
           </label>
+          {/* 隣の入力欄と高さをそろえるため、共通の大きさ(36px)のボタンにする */}
           <button
             type="button"
-            className={styles.small}
-            style={{ height: 36 }}
             onClick={() => {
               setBasedAt(jstNowInput());
               setBasedAtEdited(false);
@@ -148,6 +148,11 @@ export default function InventoryPage() {
           <span>
             <b>{filledCount}件</b>を入力しています
           </span>
+          {/* 保存の結果は、ボタンを押した位置で分かるよう帯の中に出す */}
+          <span role="status" className={styles.saved}>
+            {message}
+          </span>
+          {hint && <span className={styles.hint}>{hint}</span>}
           <span className={styles.spacer} />
           <button type="submit" className={styles.primary}>
             保存

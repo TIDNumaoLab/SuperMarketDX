@@ -43,7 +43,7 @@
 }
 
 .sat .d {
-  color: #2a5db0;
+  color: var(--saturday);
 }
 
 .sun .d,
@@ -52,11 +52,21 @@
 }
 
 .out {
-  background: #f7faf9;
+  background: var(--paper-2);
 }
 
 .today {
   background: var(--fresh-soft);
+}
+
+.todayLabel {
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 8px;
+  background: var(--fresh);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .ev {
@@ -68,8 +78,8 @@
   margin-top: 4px;
   padding: 2px 6px;
   border-radius: 4px;
-  background: #e6eef0;
-  color: #2b4a55;
+  background: var(--info-soft);
+  color: var(--info);
 }
 
 .ev.holiday {
