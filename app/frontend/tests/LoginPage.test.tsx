@@ -23,8 +23,7 @@ function renderLogin() {
       <MemoryRouter initialEntries={["/login"]}>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/orders" element={<p>発注画面</p>} />
-          <Route path="/production" element={<p>製造計画画面</p>} />
+          <Route path="/dashboard" element={<p>今日の状況画面</p>} />
         </Routes>
       </MemoryRouter>
     </AuthProvider>,
@@ -50,10 +49,10 @@ test("shows error message on 401", async () => {
   expect(screen.getByLabelText("ログインID")).toHaveValue("u1");
 });
 
-test("navigates to production for deli staff", async () => {
+test("navigates to the dashboard after login", async () => {
   vi.mocked(authApi.login).mockResolvedValue(deliStaff);
   renderLogin();
   await submit("hanako", "pass1234");
-  expect(await screen.findByText("製造計画画面")).toBeInTheDocument();
+  expect(await screen.findByText("今日の状況画面")).toBeInTheDocument();
   expect(authApi.login).toHaveBeenCalledWith("hanako", "pass1234");
 });

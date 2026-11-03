@@ -30,8 +30,8 @@ from smdx_api.proposals.service import (
     deli_target,
     is_production,
     job_key,
-    needs_auto_recalc,
     resolved_targets,
+    start_auto_recalc,
     wanted,
 )
 from smdx_api.schemas.proposals import (
@@ -111,12 +111,6 @@ def _jobs(department: Department, key: JobKey):
                                      ProposalJob.target_date == key.target_date)
 
 
-def _running_job(db: Session, department: Department, key: JobKey, now: datetime) -> ProposalJob | None:
-    return db.scalar(_jobs(department, key).where(
-        ProposalJob.status == "running", ProposalJob.started_at >= now - JOB_TIMEOUT,
-    ).order_by(ProposalJob.started_at.desc()).limit(1))
-
-
 def _last_notice(db: Session, department: Department, key: JobKey) -> str | None:
     """同じ部門・種別・対象日で最後に成功したジョブの注記。"""
     job = db.scalar(_jobs(department, key).where(ProposalJob.status == "succeeded")
@@ -163,14 +157,8 @@ def list_proposals(
     db.commit()
     settings = load_settings(db)
     key = job_key(department, now, settings, targets)
-    job = None
-    if needs_auto_recalc(db, department, now, settings, services, targets):
-        total = len(wanted(db, department, now, settings, targets))
-        job, created = start_or_get_job(db, department, key, now, total)
-        if created:
-            launcher.launch(background_tasks, job.id, resolved_targets(department, now, settings, targets))
-    else:
-        job = _running_job(db, department, key, now)
+    job = start_auto_recalc(db, department, now, settings, services, targets,
+                            lambda job_id, t: launcher.launch(background_tasks, job_id, t))
     shown = _shown(db, department, now, settings, targets, status)
     shown_date = deli_target(now, settings, targets) if is_production(department) else targets.explicit_date
     return ProposalListOut(proposals=proposals_out(db, shown), target_date=shown_date, freshness=_freshness(shown),

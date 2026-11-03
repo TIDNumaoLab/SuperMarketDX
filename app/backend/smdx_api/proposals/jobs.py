@@ -55,6 +55,15 @@ def start_or_get_job(db: Session, department: Department, key: JobKey, now: date
     return job, True
 
 
+def running_job(db: Session, department: Department, key: JobKey, now: datetime) -> ProposalJob | None:
+    """部門×種別×対象日で実行中(10分以内に開始)のジョブ。"""
+    return db.scalar(select(ProposalJob).where(
+        ProposalJob.department_id == department.id, ProposalJob.scope == key.scope,
+        ProposalJob.target_date == key.target_date, ProposalJob.status == "running",
+        ProposalJob.started_at >= now - JOB_TIMEOUT,
+    ).order_by(ProposalJob.started_at.desc()).limit(1))
+
+
 def run_job(
     job_id: int,
     targets: FreshTargets,

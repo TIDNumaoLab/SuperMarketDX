@@ -3,7 +3,7 @@ import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router";
 import { errorMessage, statusOf } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
-import { homePath } from "../auth/routes";
+import { HOME_PATH } from "../auth/routes";
 import ErrorBanner from "../components/ErrorBanner";
 import styles from "./LoginPage.module.css";
 
@@ -22,8 +22,8 @@ export default function LoginPage() {
     setSubmitting(true);
     setError(null);
     try {
-      const me = await login(loginId, password);
-      navigate(homePath(me), { replace: true });
+      await login(loginId, password);
+      navigate(HOME_PATH, { replace: true });
     } catch (err) {
       setError(statusOf(err) === 401 ? LOGIN_FAILED : errorMessage(err));
     } finally {

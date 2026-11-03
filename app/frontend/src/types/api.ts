@@ -191,3 +191,56 @@ export interface ApprovedOrder {
 
 // 設定(GET /api/settings の settings)。キーは詳細設計書「設定項目」
 export type Settings = Record<string, unknown>;
+
+// 今日の状況(GET /api/dashboard)
+export interface DashboardDepartment {
+  department_code: string;
+  department_name: string;
+  business_type: DepartmentRef["business_type"];
+  // この要求で開始した、または実行中のジョブ
+  job: Job | null;
+  last_job: { status: Job["status"]; finished_at: string | null; error: string | null } | null;
+}
+
+export interface DashboardDeadline {
+  department_code: string;
+  deadline: string;
+  target_date: string;
+  time_band: number | null;
+  pending: number;
+  approved: number;
+  confirmed: number;
+  expired: number;
+  // 未承認のうち警告が無く一括承認できる件数
+  bulk_approvable: number;
+  warnings: { code: WarningCode; count: number }[];
+}
+
+export interface TomorrowWeather {
+  weather_code: number | null;
+  weather_label: string;
+  temperature: number | null;
+  temperature_min: number | null;
+  precipitation: number | null;
+  fetched_at: string;
+}
+
+export interface Dashboard {
+  now: string;
+  business_hours: { open: string; close: string };
+  departments: DashboardDepartment[];
+  deadlines: DashboardDeadline[];
+  tomorrow: {
+    date: string;
+    weather: TomorrowWeather | null;
+    promotions: { department_name: string; product_name: string; start_date: string; end_date: string; description: string }[];
+    calendar: { kind: "holiday" | "event"; name: string }[];
+  };
+  data_status: {
+    department_code: string;
+    pos_latest_date: string | null;
+    pos_imported_at: string | null;
+    inventory_based_at: string | null;
+    stale_pos: boolean;
+  }[];
+}

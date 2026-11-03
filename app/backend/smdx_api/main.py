@@ -9,6 +9,7 @@ from smdx_api.api import (
     routes_auth,
     routes_orders,
     routes_calendar,
+    routes_dashboard,
     routes_imports,
     routes_inventory,
     routes_production,
@@ -72,4 +73,5 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     app.include_router(routes_proposals.router)
     app.include_router(routes_orders.router)
     app.include_router(routes_production.router)
+    app.include_router(routes_dashboard.router)
     return app

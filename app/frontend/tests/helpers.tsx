@@ -25,12 +25,12 @@ function LoadedOnly({ children }: { children: ReactNode }) {
   return loading ? null : <>{children}</>;
 }
 
-// ログイン中の利用者を me にして画面を描き、読み込みが終わるまで待つ
-export async function renderPage(ui: ReactElement, me: Me, waitText: string) {
+// ログイン中の利用者を me にして画面を描き、読み込みが終わるまで待つ。url で開く URL(クエリつき)を指定できる
+export async function renderPage(ui: ReactElement, me: Me, waitText: string, url = "/") {
   vi.mocked(authApi.fetchMe).mockResolvedValue(me);
   const result = render(
     <AuthProvider>
-      <MemoryRouter>
+      <MemoryRouter initialEntries={[url]}>
         <LoadedOnly>{ui}</LoadedOnly>
       </MemoryRouter>
     </AuthProvider>,

@@ -2,12 +2,13 @@
 import type { ReactNode } from "react";
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useNavigate } from "react-router";
 import { AuthProvider, useAuth } from "./auth/AuthContext";
-import { NAV_ITEMS, homePath } from "./auth/routes";
+import { HOME_PATH, NAV_ITEMS } from "./auth/routes";
 import Sidebar from "./components/Sidebar";
 import LoginPage from "./pages/LoginPage";
 import ApprovedOrdersPage from "./pages/ApprovedOrdersPage";
 import OrdersPage from "./pages/OrdersPage";
 import CalendarPage from "./pages/CalendarPage";
+import DashboardPage from "./pages/DashboardPage";
 import ImportsPage from "./pages/ImportsPage";
 import InventoryPage from "./pages/InventoryPage";
 import PlaceholderPage from "./pages/PlaceholderPage";
@@ -17,6 +18,7 @@ import SettingsPage from "./pages/SettingsPage";
 
 // 作成済みの画面。無い画面は PlaceholderPage(準備中)を出す
 const PAGES: Record<string, () => JSX.Element> = {
+  "/dashboard": DashboardPage,
   "/orders": OrdersPage,
   "/orders/approved": ApprovedOrdersPage,
   "/production": ProductionPage,
@@ -58,18 +60,18 @@ function Layout() {
   );
 }
 
-// 店長専用の画面に担当者が来たら、所属部門の既定の画面へ戻す
+// 店長専用の画面に担当者が来たら、今日の状況へ戻す
 function ManagerOnly({ children }: { children: ReactNode }) {
   const { me } = useAuth();
   if (me && me.role !== "manager") {
-    return <Navigate to={homePath(me)} replace />;
+    return <Navigate to={HOME_PATH} replace />;
   }
   return <>{children}</>;
 }
 
 function Home() {
   const { me } = useAuth();
-  return <Navigate to={me ? homePath(me) : "/login"} replace />;
+  return <Navigate to={me ? HOME_PATH : "/login"} replace />;
 }
 
 export default function App() {

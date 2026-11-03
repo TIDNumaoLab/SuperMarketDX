@@ -223,3 +223,26 @@ test("held update is applied automatically once no unsaved input remains", async
   await waitFor(() => expect(screen.getByLabelText("キャベツ の提案数")).toHaveValue(30));
   expect(screen.queryByText("新しい計算結果があります。")).not.toBeInTheDocument();
 });
+
+test("opens with the department and target date from the dashboard link", async () => {
+  await renderPage(<OrdersPage />, staff(VEG, FISH), "発注", "/orders?department=FISH&target_date=2026-10-18");
+  await screen.findByText("キャベツ");
+  expect(proposalsApi.listProposals).toHaveBeenCalledWith({ departmentCode: "FISH", targetDate: "2026-10-18", status: undefined });
+  expect(screen.getByLabelText("部門")).toHaveValue("FISH");
+  expect(screen.getByLabelText("対象日")).toHaveValue("2026-10-18");
+});
+
+test("ignores a target date from the URL that is malformed or out of range", async () => {
+  for (const bad of ["2026-10-15", "2026-11-01", "abc"]) {
+    const view = await renderPage(<OrdersPage />, staff(VEG), "発注", `/orders?department=VEG&target_date=${bad}`);
+    await screen.findByText("キャベツ");
+    expect(proposalsApi.listProposals).toHaveBeenLastCalledWith({ departmentCode: "VEG", targetDate: undefined, status: undefined });
+    view.unmount();
+  }
+});
+
+test("ignores a department from the URL that cannot be selected", async () => {
+  await renderPage(<OrdersPage />, staff(VEG, DELI), "発注", "/orders?department=DELI");
+  await screen.findByText("キャベツ");
+  expect(proposalsApi.listProposals).toHaveBeenCalledWith({ departmentCode: "VEG", targetDate: undefined, status: undefined });
+});

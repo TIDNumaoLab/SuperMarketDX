@@ -170,3 +170,44 @@ def test_adopt_then_recalc_clears_recalc_pending(db, veg_setup, baseline_service
     db.refresh(p)
     assert RECALC_PENDING not in p.basis
     assert not needs(db, baseline_services, now + timedelta(minutes=3))
+
+
+def test_launch_parallel_runs_jobs_concurrently(monkeypatch):
+    """今日の状況で開始した複数部門のジョブは、1つずつではなく並行して実行する。"""
+    import threading
+
+    from fastapi import BackgroundTasks
+
+    from smdx_api.proposals import service
+
+    # 3つのジョブがそろって待ち合わせられなければ(順に実行すると)タイムアウトで失敗する
+    barrier = threading.Barrier(3, timeout=5)
+    done = []
+
+    def fake_run_job(job_id, targets, *args):
+        barrier.wait()
+        done.append(job_id)
+
+    monkeypatch.setattr(service, "run_job", fake_run_job)
+    tasks = BackgroundTasks()
+    launcher = service.JobLauncher(lambda: None, None, lambda: None)
+    launcher.launch_parallel(tasks, [(1, FreshTargets(None)), (2, FreshTargets(None)), (3, FreshTargets(None))])
+    launcher.launch_parallel(tasks, [])
+    assert len(tasks.tasks) == 1
+    tasks.tasks[0].func(*tasks.tasks[0].args)
+    assert sorted(done) == [1, 2, 3]
+
+
+def test_launcher_logs_exception_outside_job(monkeypatch, caplog):
+    """ジョブの外で起きた例外(DB に接続できない等)は、並行実行のスレッドで消えずにログに残る。"""
+    from smdx_api.proposals import service
+
+    def broken_run_job(*args):
+        raise RuntimeError("DB に接続できません")
+
+    monkeypatch.setattr(service, "run_job", broken_run_job)
+    launcher = service.JobLauncher(lambda: None, None, lambda: None)
+    with caplog.at_level("ERROR", logger="smdx_api.proposals.service"):
+        launcher._run_all([(7, FreshTargets(None))])
+    assert "再計算ジョブ 7 を実行できませんでした" in caplog.text
+    assert "DB に接続できません" in caplog.text

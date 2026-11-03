@@ -1,0 +1,429 @@
+/* 今日の状況の見た目。色は既存画面(サイドバーの紺・強調の青・警告バッジ)に合わせ、急ぎの赤と承認済みの緑だけを足す */
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.head h1 {
+  margin: 0;
+}
+
+.now {
+  color: #5b6870;
+}
+
+.refresh {
+  margin-left: auto;
+  font-size: 0.85rem;
+  color: #5b6870;
+}
+
+.empty {
+  color: #5b6870;
+}
+
+.h2,
+.day h2 {
+  font-size: 1rem;
+  margin: 0 0 10px;
+}
+
+/* 今日の締め時刻(時間軸)。軸の両端の印の文字が部門名の列や枠にかからないよう、軸の左右に余白を取る */
+.day {
+  --name-width: 132px;
+  --gutter: 52px;
+  background: #fff;
+  border: 1px solid #d5dde3;
+  border-radius: 6px;
+  padding: 18px 24px 22px;
+  font-variant-numeric: tabular-nums;
+}
+
+.day h2 {
+  margin-bottom: 4px;
+}
+
+.lead {
+  margin: 0 0 18px;
+  color: #5b6870;
+  font-size: 0.9rem;
+}
+
+.axis,
+.lane {
+  display: grid;
+  grid-template-columns: var(--name-width) 1fr;
+  align-items: center;
+}
+
+.track {
+  position: relative;
+  margin: 0 var(--gutter);
+  height: 20px;
+  font-size: 0.78rem;
+  color: #5b6870;
+}
+
+.track span {
+  position: absolute;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.lanes {
+  position: relative;
+}
+
+.lane {
+  height: 76px;
+  border-top: 1px solid #edf1f4;
+}
+
+.lane:last-of-type {
+  border-bottom: 1px solid #edf1f4;
+}
+
+.name {
+  font-weight: bold;
+}
+
+.name small {
+  display: block;
+  font-weight: normal;
+  color: #5b6870;
+  font-size: 0.78rem;
+}
+
+.laneTrack {
+  position: relative;
+  margin: 0 var(--gutter);
+  height: 100%;
+}
+
+.laneTrack::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--gutter));
+  right: calc(-1 * var(--gutter));
+  top: 50%;
+  border-top: 1px dashed #d5dde3;
+}
+
+.mark {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-decoration: none;
+  color: inherit;
+  white-space: nowrap;
+}
+
+.mark:focus-visible {
+  outline: 3px solid #f2b705;
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+.above {
+  flex-direction: column-reverse;
+}
+
+.pin {
+  min-width: 34px;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  font-size: 0.85rem;
+  font-weight: bold;
+  background: #fff;
+  border: 2px solid #2e6e94;
+  color: #2e6e94;
+  box-sizing: border-box;
+}
+
+.t {
+  position: relative;
+  z-index: 1;
+  font-size: 0.75rem;
+  color: #5b6870;
+  background: #fff;
+  padding: 0 3px;
+}
+
+.done .pin {
+  border-color: #a9b6be;
+  color: #a9b6be;
+  background: #f3f6f8;
+}
+
+.done .t {
+  color: #a9b6be;
+}
+
+.missed .pin {
+  border-color: #b4321f;
+  color: #b4321f;
+  background: #fbe9e6;
+}
+
+.missed .t {
+  color: #b4321f;
+}
+
+.ready .pin {
+  border-color: #2f7a4f;
+  color: #2f7a4f;
+}
+
+.pending .pin {
+  background: #2e6e94;
+  color: #fff;
+}
+
+.urgent .pin {
+  background: #b4321f;
+  border-color: #b4321f;
+  color: #fff;
+}
+
+.urgent .t {
+  color: #b4321f;
+  font-weight: bold;
+}
+
+/* 現在時刻の線。画面を開いたときに1回だけ伸びる */
+.nowline {
+  position: absolute;
+  top: -6px;
+  bottom: -6px;
+  width: 0;
+  border-left: 2px solid #b4321f;
+  transform-origin: top;
+  animation: grow 0.6s ease-out both;
+}
+
+.nowline span {
+  position: absolute;
+  bottom: -22px;
+  left: -20px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: #b4321f;
+  background: #fff;
+  padding: 0 4px;
+}
+
+@keyframes grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nowline {
+    animation: none;
+  }
+}
+
+.legend {
+  display: flex;
+  gap: 20px;
+  margin-top: 30px;
+  font-size: 0.8rem;
+  color: #5b6870;
+}
+
+.legend span::before {
+  content: "";
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 6px;
+  vertical-align: -1px;
+  margin-right: 4px;
+  border: 2px solid #2e6e94;
+  box-sizing: border-box;
+}
+
+.lDone::before {
+  border-color: #a9b6be !important;
+  background: #f3f6f8;
+}
+
+.lReady::before {
+  border-color: #2f7a4f !important;
+}
+
+.lPending::before {
+  background: #2e6e94;
+}
+
+.lMissed::before {
+  border-color: #b4321f !important;
+  background: #fbe9e6;
+}
+
+.lUrgent::before {
+  background: #b4321f;
+  border-color: #b4321f !important;
+}
+
+/* 下段 */
+.below {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 24px;
+  margin-top: 24px;
+  align-items: start;
+}
+
+.todo {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: #fff;
+  border: 1px solid #d5dde3;
+  border-radius: 6px;
+}
+
+.todo li {
+  display: grid;
+  grid-template-columns: 96px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 16px;
+}
+
+.todo li + li {
+  border-top: 1px solid #edf1f4;
+}
+
+.when {
+  font-weight: bold;
+}
+
+.when small {
+  display: block;
+  font-weight: normal;
+  font-size: 0.75rem;
+  color: #5b6870;
+}
+
+.todo li.urgent .when {
+  color: #b4321f;
+}
+
+.what {
+  line-height: 1.6;
+}
+
+.what > span:first-child {
+  margin-right: 6px;
+}
+
+.what small {
+  display: block;
+  color: #5b6870;
+}
+
+.btn,
+.btnSub {
+  padding: 7px 14px;
+  border-radius: 4px;
+  border: 1px solid #2e6e94;
+  background: #2e6e94;
+  color: #fff;
+  font-size: 0.85rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.btnSub {
+  background: #fff;
+  color: #2e6e94;
+}
+
+.facts {
+  margin: 0 0 20px;
+  background: #fff;
+  border: 1px solid #d5dde3;
+  border-radius: 6px;
+  padding: 4px 16px;
+}
+
+.facts > div {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 8px;
+  padding: 10px 0;
+}
+
+.facts > div + div {
+  border-top: 1px solid #edf1f4;
+}
+
+.facts dt {
+  color: #5b6870;
+  font-size: 0.85rem;
+}
+
+.facts dd {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.facts dd span,
+.facts dd small {
+  display: block;
+}
+
+.facts dd small {
+  color: #5b6870;
+}
+
+.status {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid #d5dde3;
+  font-size: 0.85rem;
+}
+
+.status th,
+.status td {
+  padding: 8px 10px;
+  text-align: left;
+  border-top: 1px solid #edf1f4;
+  vertical-align: top;
+}
+
+.status th {
+  white-space: nowrap;
+}
+
+.status thead th {
+  background: #eef2f5;
+  font-weight: normal;
+  color: #44525c;
+}
+
+.status td small {
+  display: block;
+  color: #5b6870;
+}
+
+.stale {
+  color: #7a4300;
+  font-weight: bold;
+}
