@@ -18,7 +18,7 @@ export default function DiffBadge({ proposed, recalculated, canAdopt, onAdopt }:
     <>
       <span className={styles.diff}>{formatDiff(proposed, recalculated)}</span>
       {canAdopt && (
-        <button type="button" className={pageStyles.secondary} onClick={onAdopt}>
+        <button type="button" className={pageStyles.quiet} onClick={onAdopt}>
           採用
         </button>
       )}

@@ -45,7 +45,7 @@ function Layout() {
     return <Navigate to="/login" replace />;
   }
   return (
-    <div style={{ display: "flex" }}>
+    <div style={{ display: "flex", minHeight: "100vh" }}>
       <Sidebar
         me={me}
         onLogout={async () => {
@@ -53,7 +53,7 @@ function Layout() {
           navigate("/login", { replace: true });
         }}
       />
-      <main style={{ flex: 1, padding: 24 }}>
+      <main style={{ flex: 1, minWidth: 0, padding: "28px 28px 64px" }}>
         <Outlet />
       </main>
     </div>

@@ -7,6 +7,7 @@ import ErrorBanner from "../components/ErrorBanner";
 import { jstToday } from "../format";
 import styles from "../styles/page.module.css";
 import type { CalendarDay } from "../types/api";
+import calStyles from "./Calendar.module.css";
 import { monthGrid } from "./calendarGrid";
 
 const WEEKDAYS = ["月", "火", "水", "木", "金", "土", "日"];
@@ -80,11 +81,29 @@ export default function CalendarPage() {
     byDate.set(d.date, [...(byDate.get(d.date) ?? []), d]);
   }
 
+  // 曜日の列は月曜始まり(土曜は5、日曜は6)
+  function dayClass(date: string | null, col: number): string {
+    if (!date) return calStyles.out;
+    const names = [];
+    if (col === 5) names.push(calStyles.sat);
+    if (col === 6) names.push(calStyles.sun);
+    if ((byDate.get(date) ?? []).some((d) => d.kind === "holiday")) names.push(calStyles.hol);
+    if (date === today) names.push(calStyles.today);
+    return names.join(" ");
+  }
+
   return (
     <section>
-      <h1>カレンダー</h1>
+      <div className={styles.head}>
+        <div>
+          <h1>カレンダー</h1>
+          <p className={styles.sub}>行事日は予測に反映されます。</p>
+        </div>
+      </div>
       <ErrorBanner message={error} />
-      <div className={styles.toolbar}>
+      <div className={calStyles.layout}>
+      <div>
+      <div className={calStyles.monthnav}>
         <button type="button" className={styles.secondary} onClick={() => move(-1)}>
           前月
         </button>
@@ -95,7 +114,8 @@ export default function CalendarPage() {
           翌月
         </button>
       </div>
-      <table className={styles.table}>
+      <div className={styles.tableWrap}>
+      <table className={`${styles.table} ${calStyles.cal}`}>
         <thead>
           <tr>
             {WEEKDAYS.map((w) => (
@@ -107,20 +127,15 @@ export default function CalendarPage() {
           {monthGrid(year, month).map((week, i) => (
             <tr key={i}>
               {week.map((date, j) => (
-                <td key={j} style={{ verticalAlign: "top", height: 64, width: "14%" }}>
+                <td key={j} className={dayClass(date, j)}>
                   {date && (
                     <>
-                      <div>{Number(date.slice(8, 10))}</div>
+                      <div className={calStyles.d}>{Number(date.slice(8, 10))}</div>
                       {(byDate.get(date) ?? []).map((d) => (
-                        <div key={d.id} style={{ color: d.kind === "holiday" ? "#b3261e" : "#1f3a4d", fontSize: "0.85rem" }}>
+                        <div key={d.id} className={`${calStyles.ev} ${d.kind === "holiday" ? calStyles.holiday : ""}`}>
                           {d.name}
                           {d.kind === "event" && (
-                            <button
-                              type="button"
-                              aria-label={`${d.name} を削除`}
-                              onClick={() => setDeleting(d)}
-                              style={{ marginLeft: 4, fontSize: "0.75rem" }}
-                            >
+                            <button type="button" aria-label={`${d.name} を削除`} onClick={() => setDeleting(d)}>
                               削除
                             </button>
                           )}
@@ -134,8 +149,11 @@ export default function CalendarPage() {
           ))}
         </tbody>
       </table>
+      </div>
+      </div>
 
-      <form className={`${styles.toolbar} ${styles.section}`} onSubmit={onRegister}>
+      <form className={`${styles.panel} ${calStyles.form}`} onSubmit={onRegister}>
+        <h2 style={{ margin: 0 }}>行事日を登録</h2>
         <label className={styles.field}>
           日付
           <input type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} />
@@ -149,6 +167,7 @@ export default function CalendarPage() {
         </button>
         <span className={styles.muted}>祝日は公開データから取り込みます(管理コマンド import_holidays)。</span>
       </form>
+      </div>
 
       <ConfirmDialog
         open={deleting !== null}

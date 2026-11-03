@@ -98,10 +98,17 @@ export default function PromotionsPage() {
 
   return (
     <section>
-      <h1>特売・チラシ</h1>
+      <div className={styles.head}>
+        <div>
+          <h1>特売・チラシ</h1>
+          <p className={styles.sub}>登録した期間は予測に特売として反映されます。</p>
+        </div>
+      </div>
       <ErrorBanner message={error} />
 
-      <form className={styles.toolbar} onSubmit={onSubmit} noValidate>
+      <form className={styles.panel} onSubmit={onSubmit} noValidate>
+        <h2>{editingId === null ? "特売を登録" : "特売を編集"}</h2>
+        <div className={styles.toolbar} style={{ marginBottom: 0 }}>
         <label className={styles.field}>
           商品
           <select value={productCode} onChange={(e) => setForm({ ...form, product_code: e.target.value })}>
@@ -120,7 +127,7 @@ export default function PromotionsPage() {
           終了日
           <input type="date" value={form.end_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} />
         </label>
-        <label className={styles.field}>
+        <label className={styles.field} style={{ flex: 1 }}>
           内容
           <input value={form.description} maxLength={128} onChange={(e) => setForm({ ...form, description: e.target.value })} />
         </label>
@@ -128,13 +135,14 @@ export default function PromotionsPage() {
           {editingId === null ? "登録" : "更新"}
         </button>
         {editingId !== null && (
-          <button type="button" className={styles.secondary} onClick={resetForm}>
+          <button type="button" onClick={resetForm}>
             取消
           </button>
         )}
+        </div>
       </form>
 
-      <div className={`${styles.toolbar} ${styles.section}`}>
+      <div className={styles.toolbar}>
         <label className={styles.field}>
           表示期間(開始)
           <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
@@ -148,6 +156,7 @@ export default function PromotionsPage() {
       {rows.length === 0 ? (
         <p className={styles.muted}>この期間の特売・チラシはありません。</p>
       ) : (
+        <div className={styles.tableWrap}>
         <table className={styles.table}>
           <thead>
             <tr>
@@ -162,7 +171,7 @@ export default function PromotionsPage() {
           <tbody>
             {rows.map((p) => (
               <tr key={p.id}>
-                <td>{p.product_name}</td>
+                <td className={styles.name}>{p.product_name}</td>
                 <td>{p.department_name}</td>
                 <td>
                   {shortDate(p.start_date)}〜{shortDate(p.end_date)}
@@ -171,20 +180,21 @@ export default function PromotionsPage() {
                 <td>{p.created_by_name ?? "システム"}</td>
                 <td>
                   {accessible.has(p.department_code) && (
-                    <>
+                    <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
                       <button type="button" className={styles.secondary} onClick={() => startEdit(p)}>
                         編集
-                      </button>{" "}
+                      </button>
                       <button type="button" className={styles.secondary} onClick={() => setDeleting(p)}>
                         削除
                       </button>
-                    </>
+                    </div>
                   )}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+        </div>
       )}
 
       <ConfirmDialog

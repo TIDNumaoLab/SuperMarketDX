@@ -10,7 +10,7 @@ export default function ErrorBanner({ message }: Props) {
   return (
     <div
       role="alert"
-      style={{ background: "#fdecea", color: "#8a1c1c", padding: "10px 16px", borderRadius: 4, marginBottom: 16 }}
+      style={{ background: "var(--stamp-soft)", color: "#8a1c1c", padding: "10px 14px", borderRadius: 8, marginBottom: 14 }}
     >
       {message}
     </div>

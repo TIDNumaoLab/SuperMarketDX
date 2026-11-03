@@ -2,6 +2,7 @@
 import pageStyles from "../styles/page.module.css";
 import type { AdjustReason, Proposal } from "../types/api";
 import ProposalRow from "./ProposalRow";
+import styles from "./Proposals.module.css";
 
 interface Props {
   proposals: Proposal[];
@@ -32,7 +33,8 @@ export default function ProposalTable({ proposals, selected, skipped, approveLoc
     );
   }
   return (
-    <table className={pageStyles.table}>
+    <div className={pageStyles.tableWrap}>
+    <table className={`${pageStyles.table} ${styles.table}`}>
       <thead>
         <tr>
           {(bandLabel ? PRODUCTION_HEADERS : ORDER_HEADERS).map((h) => (
@@ -59,5 +61,6 @@ export default function ProposalTable({ proposals, selected, skipped, approveLoc
         ))}
       </tbody>
     </table>
+    </div>
   );
 }

@@ -1,0 +1,90 @@
+/* カレンダーの見た目。土日・祝日を色分けし、今日を強調する */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 16px;
+  align-items: start;
+}
+
+.monthnav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.monthnav strong {
+  font-size: 20px;
+  min-width: 130px;
+  text-align: center;
+}
+
+.cal {
+  table-layout: fixed;
+}
+
+.cal th {
+  text-align: center !important;
+}
+
+.cal td {
+  height: 92px;
+  vertical-align: top !important;
+  border-right: 1px solid var(--line);
+  padding: 6px 8px !important;
+}
+
+.cal td:last-child {
+  border-right: 0;
+}
+
+.d {
+  font-weight: 700;
+}
+
+.sat .d {
+  color: #2a5db0;
+}
+
+.sun .d,
+.hol .d {
+  color: var(--stamp);
+}
+
+.out {
+  background: #f7faf9;
+}
+
+.today {
+  background: var(--fresh-soft);
+}
+
+.ev {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  margin-top: 4px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #e6eef0;
+  color: #2b4a55;
+}
+
+.ev.holiday {
+  background: var(--stamp-soft);
+  color: var(--stamp);
+}
+
+.ev button {
+  height: 22px;
+  padding: 0 6px;
+  font-size: 12px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}

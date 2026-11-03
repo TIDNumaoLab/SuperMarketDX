@@ -53,6 +53,7 @@ export default function ProposalRow({ proposal: p, selected, skippedReason, appr
   }, [p.proposed_qty, p.status, p.is_adjusted, p.adjust_reason]);
 
   const pending = p.status === "pending";
+  const approved = p.status === "approved" || p.status === "confirmed";
   const beforeDeadline = Date.now() < new Date(p.deadline).getTime();
   const dirty = qty !== String(p.proposed_qty);
   useEffect(() => {
@@ -66,7 +67,7 @@ export default function ProposalRow({ proposal: p, selected, skippedReason, appr
   const name = production ? `${p.product_name} ${bandLabel}` : p.product_name;
 
   return (
-    <tr className={p.warnings.length > 0 ? styles.warned : undefined}>
+    <tr className={[p.warnings.length > 0 && styles.warned, approved && styles.done].filter(Boolean).join(" ") || undefined}>
       <td>
         <input
           type="checkbox"
@@ -85,7 +86,7 @@ export default function ProposalRow({ proposal: p, selected, skippedReason, appr
         <td>{formatMonthDay(p.target_date)}</td>
       )}
       <td>
-        {p.product_name}
+        <div className={styles.productName}>{p.product_name}</div>
         <div className={pageStyles.muted}>入数 {p.order_unit}</div>
       </td>
       <td>
@@ -95,13 +96,13 @@ export default function ProposalRow({ proposal: p, selected, skippedReason, appr
               type="number"
               min={0}
               step={1}
-              className={styles.qty}
+              className={`${styles.qty} ${dirty ? styles.changed : ""}`}
               aria-label={`${name} の提案数`}
               value={qty}
               onChange={(e) => setQty(e.target.value)}
             />
             {dirty && (
-              <div>
+              <div className={styles.reason}>
                 <AdjustReasonSelect label={`${name} の修正理由`} value={reason} onChange={setReason} />
                 <input aria-label={`${name} の修正理由の補足`} placeholder="補足(任意)" maxLength={128} value={note}
                   onChange={(e) => setNote(e.target.value)} />
@@ -109,17 +110,17 @@ export default function ProposalRow({ proposal: p, selected, skippedReason, appr
             )}
           </>
         ) : (
-          p.proposed_qty
+          <span className={styles.qtyStatic}>{p.proposed_qty}</span>
         )}
         {p.is_adjusted && <div className={pageStyles.muted}>修正前 {p.original_qty}</div>}
       </td>
-      <td className={pageStyles.num}>
+      <td className={`${pageStyles.num} ${styles.predict}`}>
         {num(p.predicted_qty, 1)}
         {p.is_baseline && <div className={styles.badge}>ベースライン予測</div>}
       </td>
       <td>{weatherText(p)}</td>
       <td>
-        {p.is_holiday && <span className={styles.badge}>{p.holiday_name ?? "祝日"}</span>}
+        {p.is_holiday && <span className={`${styles.badge} ${styles.holiday}`}>{p.holiday_name ?? "祝日"}</span>}
         {p.is_event_day && <span className={styles.badge}>行事日</span>}
         {p.is_promotion && <span className={styles.badge}>特売</span>}
       </td>
@@ -130,8 +131,15 @@ export default function ProposalRow({ proposal: p, selected, skippedReason, appr
         <td>{`在庫 ${num(p.inventory_qty)} / 発注残 ${num(p.backlog_qty)} / 持越 ${num(p.carry_over_qty)}`}</td>
       )}
       <td>
-        {STATUS_LABELS[p.status]}
-        {p.approved_by_name && <div className={pageStyles.muted}>{p.approved_by_name}</div>}
+        {/* 承認者は印の形で出す(確定は塗りつぶし) */}
+        <div className={styles.state}>
+          {STATUS_LABELS[p.status]}
+          {p.approved_by_name && (
+            <span className={`${styles.stamp} ${p.status === "confirmed" ? styles.confirmed : ""}`} title={`承認者 ${p.approved_by_name}`}>
+              {p.approved_by_name}
+            </span>
+          )}
+        </div>
       </td>
       <td>
         {p.warnings.map((w) => (
@@ -152,7 +160,7 @@ export default function ProposalRow({ proposal: p, selected, skippedReason, appr
           {pending && dirty && (
             <button
               type="button"
-              className={pageStyles.secondary}
+              className={`${pageStyles.primary} ${pageStyles.small}`}
               disabled={!valid || reason === ""}
               onClick={() => void onSave(Number(qty.trim()), reason as AdjustReason, note.trim() || undefined)}
             >
@@ -160,12 +168,12 @@ export default function ProposalRow({ proposal: p, selected, skippedReason, appr
             </button>
           )}
           {pending && !dirty && (
-            <button type="button" className={pageStyles.secondary} onClick={onApprove} disabled={approveLocked}>
+            <button type="button" className={`${pageStyles.primary} ${pageStyles.small}`} onClick={onApprove} disabled={approveLocked}>
               承認
             </button>
           )}
           {p.status === "approved" && beforeDeadline && (
-            <button type="button" className={pageStyles.secondary} onClick={onCancel}>
+            <button type="button" className={pageStyles.quiet} onClick={onCancel}>
               取消
             </button>
           )}

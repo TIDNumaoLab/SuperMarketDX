@@ -69,9 +69,16 @@ export default function InventoryPage() {
     }
   }
 
+  const filledCount = rows.filter((r) => (inputs[r.product_code] ?? "").trim() !== "").length;
+
   return (
     <section>
-      <h1>在庫入力</h1>
+      <div className={styles.head}>
+        <div>
+          <h1>在庫入力</h1>
+          <p className={styles.sub}>数えた商品だけ入力すれば保存できます。</p>
+        </div>
+      </div>
       <ErrorBanner message={error} />
       {message && <div className={styles.notice}>{message}</div>}
       {/* 入力の検証は画面の文言で出すため、ブラウザの検証は使わない */}
@@ -92,6 +99,8 @@ export default function InventoryPage() {
           </label>
           <button
             type="button"
+            className={styles.small}
+            style={{ height: 36 }}
             onClick={() => {
               setBasedAt(jstNowInput());
               setBasedAtEdited(false);
@@ -99,10 +108,8 @@ export default function InventoryPage() {
           >
             現在時刻にする
           </button>
-          <button type="submit" className={styles.primary}>
-            保存
-          </button>
         </div>
+        <div className={styles.tableWrap}>
         <table className={styles.table}>
           <thead>
             <tr>
@@ -114,7 +121,7 @@ export default function InventoryPage() {
           <tbody>
             {rows.map((r) => (
               <tr key={r.product_code}>
-                <td>{r.product_name}</td>
+                <td className={styles.name}>{r.product_name}</td>
                 <td className={styles.muted}>
                   {r.quantity !== null && r.based_at
                     ? `前回 ${r.quantity}(${formatShortDateTime(r.based_at)})`
@@ -126,6 +133,7 @@ export default function InventoryPage() {
                     min={0}
                     step={1}
                     aria-label={`${r.product_name} の在庫数`}
+                    className={`${styles.invInput} ${(inputs[r.product_code] ?? "").trim() !== "" ? styles.filled : ""}`}
                     value={inputs[r.product_code] ?? ""}
                     onChange={(e) => setInputs({ ...inputs, [r.product_code]: e.target.value })}
                   />
@@ -134,6 +142,17 @@ export default function InventoryPage() {
             ))}
           </tbody>
         </table>
+        </div>
+        {/* 入力件数と保存ボタンは、表が長くても見えるよう画面下に固定する */}
+        <div className={styles.savebar}>
+          <span>
+            <b>{filledCount}件</b>を入力しています
+          </span>
+          <span className={styles.spacer} />
+          <button type="submit" className={styles.primary}>
+            保存
+          </button>
+        </div>
       </form>
     </section>
   );

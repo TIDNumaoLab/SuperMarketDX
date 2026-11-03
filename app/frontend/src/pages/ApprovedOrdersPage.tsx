@@ -39,7 +39,12 @@ export default function ApprovedOrdersPage() {
 
   return (
     <section>
-      <h1>承認済み発注リスト</h1>
+      <div className={styles.head}>
+        <div>
+          <h1>承認済み発注リスト</h1>
+          <p className={`${styles.sub} no-print`}>発注システム・PDAへの入力用。商品コード順に並びます。</p>
+        </div>
+      </div>
       <ErrorBanner message={error} />
       <div className={`${styles.toolbar} no-print`}>
         <DepartmentSelect value={department} onChange={setDepartment} businessType="order" />
@@ -47,20 +52,23 @@ export default function ApprovedOrdersPage() {
           対象日
           <input type="date" value={targetDate} onChange={(e) => setTargetDate(e.target.value)} />
         </label>
+        <span className={styles.spacer} />
         <button type="button" className={styles.primary} onClick={() => window.print()}>
           印刷
         </button>
       </div>
       {rows && rows.length === 0 && <p className={styles.muted}>承認済みの発注はありません。</p>}
       {rows && rows.length > 0 && (
+        <div className={styles.sheetArea}>
+        <div className={styles.sheet}>
         <table className={styles.table}>
           <thead>
             <tr>
               <th>商品コード</th>
               <th>商品名</th>
               <th>納品日</th>
-              <th>発注数</th>
-              <th>発注単位</th>
+              <th className={styles.num}>発注数</th>
+              <th className={styles.num}>発注単位</th>
               <th>状態</th>
               <th>承認者</th>
             </tr>
@@ -71,7 +79,9 @@ export default function ApprovedOrdersPage() {
                 <td>{r.product_code}</td>
                 <td>{r.product_name}</td>
                 <td>{formatMonthDay(r.target_date)}</td>
-                <td className={styles.num}>{r.proposed_qty}</td>
+                <td className={styles.num}>
+                  <b>{r.proposed_qty}</b>
+                </td>
                 <td className={styles.num}>{r.order_unit}</td>
                 <td>{STATUS_LABELS[r.status]}</td>
                 <td>{r.approved_by_name ?? "—"}</td>
@@ -79,6 +89,8 @@ export default function ApprovedOrdersPage() {
             ))}
           </tbody>
         </table>
+        </div>
+        </div>
       )}
     </section>
   );

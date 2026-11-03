@@ -53,7 +53,7 @@ export default function DisplayStockForm({ departmentCode, products, onSaved }: 
 
   return (
     // ブラウザの入力検証ではなく、画面の文言で知らせる
-    <form className={styles.section} noValidate onSubmit={(e) => void submit(e)}>
+    <form className={styles.panel} noValidate onSubmit={(e) => void submit(e)}>
       <h2>陳列残数の入力</h2>
       <p className={styles.muted}>
         保存した時刻の直後の時間帯から差し引き、製造開始前の時間帯を計算し直します。
@@ -61,7 +61,7 @@ export default function DisplayStockForm({ departmentCode, products, onSaved }: 
       </p>
       <ErrorBanner message={error} />
       {message && <div className={styles.notice}>{message}</div>}
-      <div className={styles.toolbar}>
+      <div className={styles.toolbar} style={{ marginBottom: 0 }}>
         {products.map((p) => (
           <label key={p.product_code} className={styles.field}>
             {p.name}
@@ -70,6 +70,7 @@ export default function DisplayStockForm({ departmentCode, products, onSaved }: 
               min={0}
               step={1}
               aria-label={`${p.name} の陳列残数`}
+              style={{ width: 110 }}
               value={values[p.product_code] ?? ""}
               onChange={(e) => setValues({ ...values, [p.product_code]: e.target.value })}
             />

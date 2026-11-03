@@ -19,6 +19,17 @@ interface Item {
 const BANDS_ERROR = "時間帯の区切りは開始時(整数)をカンマ区切りで入力してください";
 const RETRAIN = "時間帯別モデルの再学習が必要です";
 
+// 画面上のまとまり。部門別の安全係数は、部門の業務(生鮮/惣菜)のまとまりに入れる
+const GROUPS = ["店舗", "生鮮の発注", "惣菜の製造"] as const;
+type Group = (typeof GROUPS)[number];
+
+function groupOf(key: string, types: Record<string, string>): Group {
+  if (key === "business_hours" || key === "weather_stale_hours") return "店舗";
+  if (key.startsWith("deli_")) return "惣菜の製造";
+  if (key.startsWith("safety_factor.") && types[key.slice("safety_factor.".length)] === "production") return "惣菜の製造";
+  return "生鮮の発注";
+}
+
 // 設定のキーから表示する項目の一覧を作る(部門別の項目は部門名を付ける)
 function itemsOf(s: Settings, names: Record<string, string>): Item[] {
   const items: Item[] = [{ key: "business_hours", label: "営業時間", kind: "hours" }];
@@ -67,6 +78,7 @@ export default function SettingsPage() {
   const { me } = useAuth();
   const editable = me?.role === "manager";
   const names = Object.fromEntries((me?.accessible_departments ?? []).map((d) => [d.code, d.name]));
+  const types = Object.fromEntries((me?.accessible_departments ?? []).map((d) => [d.code, d.business_type]));
   const [settings, setSettings] = useState<Settings | null>(null);
   const [inputs, setInputs] = useState<Record<string, string>>({});
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -206,21 +218,38 @@ export default function SettingsPage() {
       <h1>設定</h1>
       <ErrorBanner message={error} />
       {message && <div className={styles.notice}>{message}</div>}
-      {retrain && <div className={styles.notice}>{RETRAIN}</div>}
+      {retrain && <div className={styles.warnNotice}>{RETRAIN}</div>}
       <form onSubmit={onSubmit} noValidate>
-        <table className={styles.table}>
-          <tbody>
-            {items.map((item) => (
-              <tr key={item.key}>
-                <th>{labelled(item) ? <label htmlFor={item.key}>{item.label}</label> : item.label}</th>
-                <td>{valueCell(item)}</td>
-                <td role={fieldErrors[item.key] ? "alert" : undefined}>{fieldErrors[item.key] ?? ""}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {GROUPS.map((group) => {
+          const rows = items.filter((item) => groupOf(item.key, types) === group);
+          if (rows.length === 0) return null;
+          return (
+            <div key={group} style={{ marginBottom: 18 }}>
+              <h2 style={{ fontSize: 16 }}>{group}</h2>
+              <div className={styles.tableWrap}>
+                <table className={styles.table}>
+                  <tbody>
+                    {rows.map((item) => (
+                      <tr key={item.key}>
+                        <th style={{ width: 240, fontWeight: 400 }}>
+                          {labelled(item) ? <label htmlFor={item.key}>{item.label}</label> : item.label}
+                        </th>
+                        <td>{valueCell(item)}</td>
+                        <td role={fieldErrors[item.key] ? "alert" : undefined} style={{ color: "var(--stamp)", fontSize: 13 }}>
+                          {fieldErrors[item.key] ?? ""}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          );
+        })}
         {editable && (
-          <div className={styles.toolbar} style={{ marginTop: 16 }}>
+          <div className={styles.savebar}>
+            <span className={styles.muted}>変えた項目だけが保存されます。</span>
+            <span className={styles.spacer} />
             <button type="submit" className={styles.primary}>
               保存
             </button>

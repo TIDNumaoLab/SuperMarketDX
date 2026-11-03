@@ -1,75 +1,271 @@
-/* 業務画面で共通に使う表・フォームの見た目 */
+/* 業務画面で共通に使う見出し・表・フォーム・ボタンの見た目 */
+
+/* 画面の見出し(左に題と説明、右に締めなど) */
+.head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+
+.head h1 {
+  margin: 0;
+}
+
+.sub {
+  color: var(--ink-2);
+  margin: 4px 0 0;
+}
+
 .toolbar {
   display: flex;
-  gap: 16px;
+  gap: 14px;
   align-items: flex-end;
   flex-wrap: wrap;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
+}
+
+.spacer {
+  flex: 1;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  font-size: 0.9rem;
+  gap: 3px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.field input,
+.field select {
+  font-size: 15px;
+  color: var(--ink);
+}
+
+/* 表は角丸の枠(tableWrap)に入れる */
+.tableWrap {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow-x: auto;
 }
 
 .table {
   border-collapse: collapse;
   width: 100%;
-  background: #fff;
+  background: var(--surface);
 }
 
 .table th,
 .table td {
-  border: 1px solid #d5dde3;
-  padding: 6px 10px;
+  padding: 8px 9px;
   text-align: left;
-  font-size: 0.9rem;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--line);
 }
 
-.table th {
-  background: #eef2f5;
+.table thead th {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--ink-2);
+  background: #f7faf9;
+  white-space: nowrap;
+}
+
+.table tbody tr:last-child > * {
+  border-bottom: 0;
 }
 
 .num {
   text-align: right;
 }
 
-.primary {
-  padding: 8px 16px;
-  background: #2e6e94;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+.table th.num {
+  text-align: right;
 }
 
-.primary:disabled {
-  opacity: 0.5;
-  cursor: default;
+.primary {
+  background: var(--fresh);
+  border-color: var(--fresh);
+  color: #fff;
+  font-weight: 700;
 }
 
 .secondary {
-  padding: 4px 10px;
-  background: #fff;
-  border: 1px solid #9aa9b4;
-  border-radius: 4px;
-  cursor: pointer;
+  height: 30px;
+  padding: 0 12px;
+  font-size: 14px;
+}
+
+/* 下線つきの控えめなボタン(取消・採用) */
+.quiet {
+  height: 30px;
+  padding: 0 6px;
+  font-size: 14px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--fresh);
+  text-decoration: underline;
+}
+
+.small {
+  height: 30px;
+  padding: 0 12px;
+  font-size: 14px;
 }
 
 .notice {
-  background: #e8f4ea;
-  color: #1d5a2a;
-  padding: 10px 16px;
-  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  background: var(--fresh-soft);
+  color: #0d4d3a;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+}
+
+.warnNotice {
+  background: var(--amber-soft);
+  color: #5e3204;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+}
+
+/* 白い枠のまとまり(入力欄など) */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px 18px;
   margin-bottom: 16px;
 }
 
+.panel > :last-child {
+  margin-bottom: 0;
+}
+
 .section {
-  margin-top: 32px;
+  margin-top: 28px;
 }
 
 .muted {
-  color: #6b7a85;
+  color: var(--ink-2);
+  font-size: 13px;
+}
+
+.name {
+  font-weight: 700;
+}
+
+/* 画面の下に固定する操作の帯 */
+.savebar {
+  position: sticky;
+  bottom: 16px;
+  margin-top: 16px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(31, 61, 54, 0.12);
+}
+
+/* 承認済み発注リスト: 印刷される紙の見た目を画面にも出す(印刷時は紙の枠を外す) */
+.sheetArea {
+  background: #dce3e1;
+  border-radius: 8px;
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.sheet {
+  width: 720px;
+  background: #fff;
+  padding: 32px 36px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+}
+
+.sheet .table th,
+.sheet .table td {
+  border-bottom-color: #c9d3d0;
+}
+
+@media print {
+  .sheetArea {
+    background: none;
+    padding: 0;
+    display: block;
+  }
+
+  .sheet {
+    width: auto;
+    padding: 0;
+    box-shadow: none;
+  }
+}
+
+/* データ取込の手順(番号つき) */
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: step;
+}
+
+.steps li {
+  counter-increment: step;
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.steps li:last-child {
+  border-bottom: 0;
+}
+
+.steps li::before {
+  content: counter(step);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--evergreen);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.cols {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 16px;
+  align-items: start;
+}
+
+/* 在庫入力: 入力した欄は色を変える */
+.invInput {
+  width: 110px;
+  text-align: right;
+  font-size: 17px !important;
+  font-weight: 700;
+}
+
+.filled {
+  border-color: var(--fresh) !important;
+  background: var(--fresh-soft) !important;
+}
+
+.steps select {
+  max-width: 280px;
 }
