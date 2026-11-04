@@ -1,32 +1,33 @@
 .sidebar {
   width: 220px;
+  flex: none;
   min-height: 100vh;
-  background: #1f3a4d;
+  background: var(--evergreen);
   color: #fff;
   display: flex;
   flex-direction: column;
-  padding: 16px 0;
-  box-sizing: border-box;
+  padding: 20px 0 16px;
 }
 
 .user {
-  padding: 0 16px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0 20px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
 }
 
 .userName {
-  font-weight: bold;
+  font-weight: 700;
+  font-size: 17px;
 }
 
 .departments {
-  font-size: 0.85rem;
-  opacity: 0.8;
-  margin-top: 4px;
+  font-size: 13px;
+  color: var(--side-ink-2);
+  margin-top: 2px;
 }
 
 .links {
   list-style: none;
-  margin: 12px 0;
+  margin: 10px 0;
   padding: 0;
   flex: 1;
 }
@@ -34,26 +35,26 @@
 .link,
 .active {
   display: block;
-  padding: 10px 16px;
+  padding: 9px 20px;
   color: #fff;
   text-decoration: none;
+  border-left: 4px solid transparent;
 }
 
 .link:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.07);
 }
 
 .active {
-  background: #2e6e94;
-  font-weight: bold;
+  background: rgba(255, 255, 255, 0.12);
+  border-left-color: var(--side-accent);
+  font-weight: 700;
 }
 
 .logout {
-  margin: 0 16px;
-  padding: 8px;
+  margin: 0 20px;
+  height: 34px;
   background: transparent;
   color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 4px;
-  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.35);
 }

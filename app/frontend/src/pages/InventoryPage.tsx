@@ -6,6 +6,7 @@ import { getLatestInventory, putInventory } from "../api/inventory";
 import { useAuth } from "../auth/AuthContext";
 import DepartmentSelect, { selectableDepartments } from "../components/DepartmentSelect";
 import ErrorBanner from "../components/ErrorBanner";
+import { savebarHint } from "../components/savebarHint";
 import { formatShortDateTime, jstNowInput, toJstIso } from "../format";
 import styles from "../styles/page.module.css";
 import type { InventoryLatest } from "../types/api";
@@ -69,11 +70,18 @@ export default function InventoryPage() {
     }
   }
 
+  const filledCount = rows.filter((r) => (inputs[r.product_code] ?? "").trim() !== "").length;
+  const hint = savebarHint(error);
+
   return (
     <section>
-      <h1>在庫入力</h1>
+      <div className={styles.head}>
+        <div>
+          <h1>在庫入力</h1>
+          <p className={styles.sub}>数えた商品だけ入力すれば保存できます。</p>
+        </div>
+      </div>
       <ErrorBanner message={error} />
-      {message && <div className={styles.notice}>{message}</div>}
       {/* 入力の検証は画面の文言で出すため、ブラウザの検証は使わない */}
       <form onSubmit={onSubmit} noValidate>
         <div className={styles.toolbar}>
@@ -90,6 +98,7 @@ export default function InventoryPage() {
               required
             />
           </label>
+          {/* 隣の入力欄と高さをそろえるため、共通の大きさ(36px)のボタンにする */}
           <button
             type="button"
             onClick={() => {
@@ -99,10 +108,8 @@ export default function InventoryPage() {
           >
             現在時刻にする
           </button>
-          <button type="submit" className={styles.primary}>
-            保存
-          </button>
         </div>
+        <div className={styles.tableWrap}>
         <table className={styles.table}>
           <thead>
             <tr>
@@ -114,7 +121,7 @@ export default function InventoryPage() {
           <tbody>
             {rows.map((r) => (
               <tr key={r.product_code}>
-                <td>{r.product_name}</td>
+                <td className={styles.name}>{r.product_name}</td>
                 <td className={styles.muted}>
                   {r.quantity !== null && r.based_at
                     ? `前回 ${r.quantity}(${formatShortDateTime(r.based_at)})`
@@ -126,6 +133,7 @@ export default function InventoryPage() {
                     min={0}
                     step={1}
                     aria-label={`${r.product_name} の在庫数`}
+                    className={`${styles.invInput} ${(inputs[r.product_code] ?? "").trim() !== "" ? styles.filled : ""}`}
                     value={inputs[r.product_code] ?? ""}
                     onChange={(e) => setInputs({ ...inputs, [r.product_code]: e.target.value })}
                   />
@@ -134,6 +142,22 @@ export default function InventoryPage() {
             ))}
           </tbody>
         </table>
+        </div>
+        {/* 入力件数と保存ボタンは、表が長くても見えるよう画面下に固定する */}
+        <div className={styles.savebar}>
+          <span>
+            <b>{filledCount}件</b>を入力しています
+          </span>
+          {/* 保存の結果は、ボタンを押した位置で分かるよう帯の中に出す */}
+          <span role="status" className={styles.saved}>
+            {message}
+          </span>
+          {hint && <span className={styles.hint}>{hint}</span>}
+          <span className={styles.spacer} />
+          <button type="submit" className={styles.primary}>
+            保存
+          </button>
+        </div>
       </form>
     </section>
   );

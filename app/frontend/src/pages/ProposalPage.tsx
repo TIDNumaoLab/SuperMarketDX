@@ -160,11 +160,13 @@ export default function ProposalPage({ mode }: { mode: ProposalMode }) {
 
   return (
     <section>
-      <h1>{production ? "製造計画" : "発注"}</h1>
+      <div className={styles.head}>
+        <h1>{production ? "製造計画" : "発注"}</h1>
+        {typeof cutoff === "string" && <p className={proposalStyles.cutoff}>発注締め {cutoff} まで</p>}
+        {/* 製造開始の列は時刻だけなので、どの日の計画かを出す(最初の時間帯の製造開始以後の既定表示は翌日) */}
+        {production && planDate && <p className={proposalStyles.cutoff}>{formatMonthDay(planDate)} の製造計画</p>}
+      </div>
       <ErrorBanner message={actionError ?? error} />
-      {typeof cutoff === "string" && <p className={proposalStyles.cutoff}>発注締め {cutoff} まで</p>}
-      {/* 製造開始の列は時刻だけなので、どの日の計画かを出す(最初の時間帯の製造開始以後の既定表示は翌日) */}
-      {production && planDate && <p className={proposalStyles.cutoff}>{formatMonthDay(planDate)} の製造計画</p>}
       <div className={styles.toolbar}>
         <DepartmentSelect value={department} onChange={setDepartment} businessType={mode} />
         <label className={styles.field}>
@@ -182,6 +184,7 @@ export default function ProposalPage({ mode }: { mode: ProposalMode }) {
             ))}
           </select>
         </label>
+        <span className={styles.spacer} />
         <BulkApproveButton count={selected.size} disabled={recalculating} onClick={() => void bulk()} />
       </div>
       {production && department && (
@@ -196,10 +199,11 @@ export default function ProposalPage({ mode }: { mode: ProposalMode }) {
       {hasUpdate && (
         <div className={styles.notice}>
           <span>新しい計算結果があります。</span>{" "}
-          <button type="button" onClick={() => void applyUpdate()}>
+          <span>(提案数が変わった行の保存していない入力は、新しい提案数に戻ります)</span>
+          <span className={styles.spacer} />
+          <button type="button" className={styles.small} onClick={() => void applyUpdate()}>
             反映する
           </button>
-          (提案数が変わった行の保存していない入力は、新しい提案数に戻ります)
         </div>
       )}
       {data && (

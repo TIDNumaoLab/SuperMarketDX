@@ -13,8 +13,8 @@ interface Props {
 export default function FreshnessBar({ freshness, job, onRecalculate }: Props) {
   const running = job?.status === "running";
   return (
-    <div className={pageStyles.toolbar}>
-      <span className={styles.freshness} aria-live="polite">
+    <div className={styles.freshness}>
+      <span aria-live="polite">
         {running && job ? formatRunning(job) : freshness ? formatFreshness(freshness) : ""}
       </span>
       <button type="button" className={pageStyles.secondary} onClick={onRecalculate} disabled={running}>

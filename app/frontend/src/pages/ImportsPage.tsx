@@ -61,53 +61,81 @@ export default function ImportsPage() {
 
   return (
     <section>
-      <h1>データ取込</h1>
+      <div className={styles.head}>
+        <div>
+          <h1>データ取込</h1>
+          {/* Excel で保存し直すと Shift_JIS や 2026/10/15 の形式になりやすいため、形式を書いておく */}
+          <p className={styles.sub}>標準取込形式の CSV(文字コードは UTF-8、日付は YYYY-MM-DD)を選んでください。</p>
+        </div>
+      </div>
       <ErrorBanner message={error} />
-      {/* Excel で保存し直すと Shift_JIS や 2026/10/15 の形式になりやすいため、形式を書いておく */}
-      <p className={styles.muted}>標準取込形式の CSV(文字コードは UTF-8、日付は YYYY-MM-DD)を選んでください。</p>
-      <form className={styles.toolbar} onSubmit={onSubmit}>
-        <label className={styles.field}>
-          種類
-          <select value={kind} onChange={(e) => setKind(e.target.value as ImportKind)}>
-            {kinds.map((k) => (
-              <option key={k} value={k}>
-                {KIND_LABELS[k]}
-              </option>
-            ))}
-          </select>
-        </label>
-        {kind !== "products" && <DepartmentSelect value={department} onChange={setDepartment} />}
-        <label className={styles.field}>
-          CSVファイル
-          <input type="file" accept=".csv,text/csv" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-        </label>
-        <button type="submit" className={styles.primary} disabled={!file || busy}>
-          取り込む
-        </button>
-      </form>
-
-      {result && (
-        <div className={styles.notice}>
-          <div>
-            取込 {result.imported_count}件、スキップ {result.skipped_count}件
+      <div className={styles.cols}>
+        {/* 種類・部門・ファイルを選ぶ順に並べる */}
+        <form className={styles.panel} onSubmit={onSubmit}>
+          <ol className={styles.steps}>
+            <li>
+              <label className={styles.field}>
+                種類
+                <select value={kind} onChange={(e) => setKind(e.target.value as ImportKind)}>
+                  {kinds.map((k) => (
+                    <option key={k} value={k}>
+                      {KIND_LABELS[k]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </li>
+            {kind !== "products" && (
+              <li>
+                <DepartmentSelect value={department} onChange={setDepartment} />
+              </li>
+            )}
+            <li>
+              <label className={styles.field}>
+                CSVファイル
+                <input type="file" accept=".csv,text/csv" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+              </label>
+            </li>
+          </ol>
+          <div className={styles.actions}>
+            <button type="submit" className={styles.primary} disabled={!file || busy}>
+              取り込む
+            </button>
           </div>
-          {result.errors.length > 0 && (
-            <ul>
-              {result.errors.map((er) => (
-                <li key={er.row}>
-                  {er.row}行目: {er.reason}
-                </li>
-              ))}
-            </ul>
+        </form>
+
+        <div className={styles.panel}>
+          <h2>取込結果</h2>
+          {result ? (
+            <>
+              <div className={result.skipped_count > 0 ? styles.warnNotice : styles.notice}>
+                取込 {result.imported_count}件、スキップ {result.skipped_count}件
+              </div>
+              {result.errors.length > 0 && (
+                <>
+                  <p className={styles.muted}>スキップした行は直して取り込み直してください。</p>
+                  <ul className={styles.errorList}>
+                    {result.errors.map((er) => (
+                      <li key={er.row}>
+                        {er.row}行目: {er.reason}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </>
+          ) : (
+            <p className={styles.muted}>取り込むと、ここに件数とスキップした行が出ます。</p>
           )}
         </div>
-      )}
+      </div>
 
       <div className={styles.section}>
         <h2>取込履歴</h2>
         {history.length === 0 ? (
           <p className={styles.muted}>取込履歴はありません。</p>
         ) : (
+          <div className={styles.tableWrap}>
           <table className={styles.table}>
             <thead>
               <tr>
@@ -134,6 +162,7 @@ export default function ImportsPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </section>

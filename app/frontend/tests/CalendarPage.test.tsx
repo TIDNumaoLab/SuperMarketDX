@@ -65,3 +65,18 @@ test("register event and move months", async () => {
   expect(await screen.findByText("2027年1月")).toBeInTheDocument();
   expect(calendarApi.listCalendar).toHaveBeenLastCalledWith(2027);
 });
+
+test("calendar marks weekends, holidays and today", async () => {
+  await renderPage(<CalendarPage />, manager(), "2026年11月");
+  await screen.findByText("文化の日");
+  const cell = (day: string) => screen.getAllByRole("cell").find((c) => c.querySelector("div")?.firstChild?.textContent === day)!;
+  expect(cell("3")).toHaveClass("hol"); // 祝日(火曜)
+  expect(cell("7")).toHaveClass("sat");
+  expect(cell("8")).toHaveClass("sun");
+  expect(cell("9").className).toBe(""); // 平日は色分けなし
+  // 今日は色だけでなく文字と aria-current でも示す
+  expect(cell("10")).toHaveClass("today");
+  expect(cell("10")).toHaveAttribute("aria-current", "date");
+  expect(within(cell("10")).getByText("今日")).toBeInTheDocument();
+  expect(cell("11")).not.toHaveAttribute("aria-current");
+});

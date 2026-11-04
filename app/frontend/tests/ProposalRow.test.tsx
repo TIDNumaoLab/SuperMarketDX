@@ -110,3 +110,20 @@ test("skipped reason from bulk approve is shown", () => {
   renderRow(proposal({ warnings: ["NO_WEATHER"] }), { skippedReason: "警告があるため一括承認から除外しました" });
   expect(screen.getByText("警告があるため一括承認から除外しました")).toBeInTheDocument();
 });
+
+test("approved and confirmed rows are dimmed and show the approver stamp", () => {
+  renderRow(proposal({ status: "approved", approved_by_name: "店長" }));
+  const row = screen.getByRole("row");
+  expect(row).toHaveClass("done");
+  expect(within(row).getByTitle("承認者 店長")).not.toHaveClass("confirmed");
+});
+
+test("confirmed stamp is filled and pending row is not dimmed", () => {
+  renderRow(proposal({ status: "confirmed", approved_by_name: "店長" }));
+  expect(screen.getByTitle("承認者 店長")).toHaveClass("confirmed");
+});
+
+test("pending row is not dimmed", () => {
+  renderRow(proposal());
+  expect(screen.getByRole("row")).not.toHaveClass("done");
+});

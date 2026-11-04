@@ -2,7 +2,7 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, test, vi } from "vitest";
 import * as settingsApi from "../src/api/settings";
-import SettingsPage from "../src/pages/SettingsPage";
+import SettingsPage, { groupOf } from "../src/pages/SettingsPage";
 import { VEG, manager, renderPage, staff } from "./helpers";
 
 vi.mock("../src/api/auth");
@@ -84,4 +84,31 @@ test("staff sees values without inputs", async () => {
   expect(await screen.findByText("10:00〜20:00")).toBeInTheDocument();
   expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "保存" })).not.toBeInTheDocument();
+});
+
+test("groupOf decides the group by settings keys", () => {
+  // 発注締め時刻があるのは生鮮の部門だけ。安全係数はそれで分ける
+  expect(groupOf("business_hours", SETTINGS)).toBe("店舗");
+  expect(groupOf("weather_stale_hours", SETTINGS)).toBe("店舗");
+  expect(groupOf("deli_time_bands", SETTINGS)).toBe("惣菜の製造");
+  expect(groupOf("safety_factor.DELI", SETTINGS)).toBe("惣菜の製造");
+  expect(groupOf("safety_factor.VEG", SETTINGS)).toBe("生鮮の発注");
+  expect(groupOf("order_cutoff.FISH", SETTINGS)).toBe("生鮮の発注");
+});
+
+test("staff sees other departments in the right group", async () => {
+  // 設定は全部門の分が返る。担当者の閲覧できる部門に無い惣菜も、惣菜の製造に並ぶ(PR #15 指摘)
+  await renderPage(<SettingsPage />, staff(VEG), "設定");
+  const deli = (await screen.findByRole("heading", { name: "惣菜の製造" })).parentElement!;
+  expect(within(deli).getByText("安全係数(DELI)")).toBeInTheDocument();
+  const fresh = screen.getByRole("heading", { name: "生鮮の発注" }).parentElement!;
+  expect(within(fresh).queryByText("安全係数(DELI)")).not.toBeInTheDocument();
+  expect(within(fresh).getByText("安全係数(青果)")).toBeInTheDocument();
+});
+
+test("save result is shown in the save bar", async () => {
+  await renderPage(<SettingsPage />, manager(), "設定");
+  const user = userEvent.setup();
+  await user.click(await screen.findByRole("button", { name: "保存" }));
+  expect(screen.getByRole("status")).toHaveTextContent("変更はありません");
 });

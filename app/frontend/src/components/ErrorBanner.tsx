@@ -1,4 +1,6 @@
 // 画面上部に出すエラー文言(API 呼び出しの失敗など)
+import styles from "../styles/page.module.css";
+
 interface Props {
   message: string | null;
 }
@@ -8,10 +10,7 @@ export default function ErrorBanner({ message }: Props) {
     return null;
   }
   return (
-    <div
-      role="alert"
-      style={{ background: "#fdecea", color: "#8a1c1c", padding: "10px 16px", borderRadius: 4, marginBottom: 16 }}
-    >
+    <div role="alert" className={styles.error}>
       {message}
     </div>
   );
