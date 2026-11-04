@@ -81,3 +81,43 @@ def test_session_max_age_must_be_positive(monkeypatch):
     monkeypatch.setenv("SESSION_MAX_AGE_HOURS", "0")
     with pytest.raises(ValidationError):
         AppConfig(_env_file=None)
+
+
+def _post_import(client, size):
+    return client.post("/api/imports/pos", files={"file": ("pos.csv", b"x" * size, "text/csv")},
+                       data={"department_code": "VEG"})
+
+
+def test_import_size_is_checked_before_reading_body(make_client):
+    """上限を大きく超える取込は、本文を読む前(ログインの確認より前)に 413 で拒否する。"""
+    client = make_client(import_max_mb=0.01)
+    res = _post_import(client, 200 * 1024)
+    assert res.status_code == 413
+    assert res.json()["detail"] == "ファイルが大きすぎます(上限 0.01MB)。期間を分けて取り込んでください"
+    # 上限+multipart の見出しの分までは通し、ログインの確認に進む
+    assert _post_import(client, 1024).status_code == 401
+
+
+def test_import_without_content_length_is_411():
+    import asyncio
+
+    from smdx_api.security import ImportSizeMiddleware
+
+    reached, sent = [], []
+
+    async def app(scope, receive, send):
+        reached.append(scope["path"])
+
+    async def receive():
+        return {"type": "http.request", "body": b"", "more_body": False}
+
+    async def send(message):
+        sent.append(message)
+
+    mw = ImportSizeMiddleware(app, max_mb=1)
+    scope = {"type": "http", "method": "POST", "path": "/api/imports/pos", "headers": [], "query_string": b""}
+    asyncio.run(mw(scope, receive, send))
+    assert reached == [] and sent[0]["status"] == 411
+    # 取込以外の要求はそのまま通す
+    asyncio.run(mw({**scope, "path": "/api/inventory"}, receive, send))
+    assert reached == ["/api/inventory"]

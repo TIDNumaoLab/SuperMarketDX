@@ -151,8 +151,8 @@ def weather_frame(result: ForecastResult) -> pd.DataFrame | None:
 
 
 def freshness_context(db: Session, department_id: int, current_model_version: str, stale_hours: float) -> FreshnessContext:
-    """最新性判定の材料。data_changed_at は、その部門の在庫・POSの取込、在庫の手入力、陳列残数の入力、
-    提案の確定(発注残の変化)のうち最も新しい日時。
+    """最新性判定の材料。data_changed_at は、その部門の在庫・POSの取込、商品マスタの取込(全部門に効く)、在庫の手入力、
+    陳列残数の入力、提案の確定(発注残の変化)のうち最も新しい日時。
 
     手入力の在庫・陳列残数は行の更新日時(DB の時計)を使う。同じ基準日時で入力し直すと行が上書きされるため。
     """
@@ -160,6 +160,8 @@ def freshness_context(db: Session, department_id: int, current_model_version: st
     candidates = [
         db.scalar(select(func.max(ImportLog.finished_at)).where(
             ImportLog.department_id == department_id, ImportLog.kind.in_(("pos", "inventory")))),
+        # 発注単位・持越可否などの変更を反映する(商品マスタの取込は部門を持たない)
+        db.scalar(select(func.max(ImportLog.finished_at)).where(ImportLog.kind == "products")),
         db.scalar(select(func.max(InventorySnapshot.updated_at)).where(
             InventorySnapshot.source == "manual", InventorySnapshot.product_id.in_(product_ids))),
         db.scalar(select(func.max(DisplayStockEntry.updated_at)).where(DisplayStockEntry.product_id.in_(product_ids))),

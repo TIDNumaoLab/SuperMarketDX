@@ -20,7 +20,7 @@ from smdx_api.api import (
 )
 from smdx_api.config import AppConfig, get_config
 from smdx_api.db.session import make_engine, make_session_factory
-from smdx_api.security import CSRF_HEADER, CsrfMiddleware
+from smdx_api.security import CSRF_HEADER, CsrfMiddleware, ImportSizeMiddleware
 from smdx_api.predictor.registry import ModelRegistry
 from smdx_api.weather_client.client import OpenMeteoClient
 
@@ -29,7 +29,13 @@ SESSION_COOKIE_NAME = "smdx_session"
 
 def create_app(config: AppConfig | None = None) -> FastAPI:
     config = config or get_config()
-    app = FastAPI(title="スーパーマーケットDX API")
+    docs = config.api_docs_enabled
+    app = FastAPI(
+        title="スーパーマーケットDX API",
+        docs_url="/docs" if docs else None,
+        redoc_url="/redoc" if docs else None,
+        openapi_url="/openapi.json" if docs else None,
+    )
     app.state.config = config
     # 接続は最初の利用時に張られる(DB が無くても /health は応答する)
     app.state.session_factory = make_session_factory(make_engine(config.database_url))
@@ -41,7 +47,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
         registry.status(granularity)
     app.state.model_registry = registry
 
-    # add_middleware は後に追加したものほど外側になる。外側から CORS → CSRF → セッション の順にする
+    # add_middleware は後に追加したものほど外側になる。外側から CORS → CSRF → 取込の大きさ → セッション の順にする
     app.add_middleware(
         SessionMiddleware,
         secret_key=config.session_secret,
@@ -50,6 +56,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
         same_site="lax",
         https_only=config.session_cookie_secure,
     )
+    app.add_middleware(ImportSizeMiddleware, max_mb=config.import_max_mb)
     app.add_middleware(CsrfMiddleware)
     app.add_middleware(
         CORSMiddleware,

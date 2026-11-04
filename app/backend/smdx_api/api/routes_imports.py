@@ -1,4 +1,5 @@
 """CSV取込(F-01〜F-03)と取込履歴。"""
+from collections.abc import Callable
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
@@ -7,12 +8,13 @@ from sqlalchemy.orm import Session
 
 from smdx_api.api.deps import FORBIDDEN, current_user, department_for, get_db
 from smdx_api.auth.permissions import Principal
-from smdx_api.clock import get_now
+from smdx_api.clock import get_clock
 from smdx_api.db.models import Department, ImportLog, User
 from smdx_api.imports.formats import Kind
 from smdx_api.imports.parse import FileFormatError
 from smdx_api.imports.service import run_import
 from smdx_api.schemas.imports import ImportLogOut
+from smdx_api.security import too_large_detail
 
 router = APIRouter(prefix="/api")
 
@@ -44,7 +46,7 @@ def import_csv(
     department_code: str | None = Form(None),
     p: Principal = Depends(current_user),
     db: Session = Depends(get_db),
-    now: datetime = Depends(get_now),
+    clock: Callable[[], datetime] = Depends(get_clock),
 ) -> ImportLogOut:
     if kind == "products":
         # 商品マスタは店長のみ。部門は行ごとに指定されるため取込先の部門は持たない
@@ -60,11 +62,9 @@ def import_csv(
     # 上限を1バイト超えた時点で読むのをやめる
     data = file.file.read(limit + 1)
     if len(data) > limit:
-        raise HTTPException(
-            status_code=413, detail=f"ファイルが大きすぎます(上限 {max_mb:g}MB)。期間を分けて取り込んでください"
-        )
+        raise HTTPException(status_code=413, detail=too_large_detail(max_mb))
     try:
-        log = run_import(db, kind, file.filename or "upload.csv", data, department, p.user_id, now)
+        log = run_import(db, kind, file.filename or "upload.csv", data, department, p.user_id, clock)
     except FileFormatError as e:
         db.rollback()
         raise HTTPException(status_code=422, detail=e.message) from None

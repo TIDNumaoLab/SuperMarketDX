@@ -1,11 +1,14 @@
 """ログイン・ログアウト・ログイン中の利用者。"""
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from smdx_api.api.deps import SESSION_USER_KEY, current_user, get_db
 from smdx_api.auth.permissions import Principal
-from smdx_api.auth.service import authenticate
+from smdx_api.auth.service import LoginLimit, authenticate
+from smdx_api.clock import get_now
 from smdx_api.db.models import Department, User
 from smdx_api.schemas.auth import DepartmentRef, LoginRequest, MeResponse
 
@@ -34,8 +37,13 @@ def _me(db: Session, user: User) -> MeResponse:
 
 
 @router.post("/auth/login", response_model=MeResponse)
-def login(body: LoginRequest, request: Request, db: Session = Depends(get_db)) -> MeResponse:
-    user = authenticate(db, body.login_id, body.password)
+def login(body: LoginRequest, request: Request, db: Session = Depends(get_db),
+          now: datetime = Depends(get_now)) -> MeResponse:
+    config = request.app.state.config
+    user = authenticate(db, body.login_id, body.password, now,
+                        LoginLimit(config.login_max_failures, config.login_lock_minutes))
+    # 失敗の回数・ロックの期限は、ログインに失敗しても残す
+    db.commit()
     if user is None:
         raise HTTPException(status_code=401, detail=LOGIN_FAILED)
     request.session.clear()

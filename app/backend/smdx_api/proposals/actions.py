@@ -12,7 +12,14 @@ from sqlalchemy.orm import Session
 
 from smdx_api.db.models import Proposal, ProposalHistory
 from smdx_api.proposals.deadlines import apply_deadlines, state_of
-from smdx_api.proposals.rules import bulk_skip_reason, check_adjust, check_adopt, check_approve, check_cancel
+from smdx_api.proposals.rules import (
+    bulk_skip_reason,
+    check_adjust,
+    check_adopt,
+    check_approve,
+    check_cancel,
+    check_order_unit,
+)
 
 NOT_FOUND = "対象が見つかりません"
 # 根拠(basis)に付ける再計算待ちの印
@@ -50,6 +57,9 @@ def adjust(db: Session, proposal_id: int, quantity: int, reason: str, note: str 
            now: datetime) -> Proposal:
     p = _get(db, proposal_id, now)
     check_adjust(state_of(p))
+    # 惣菜の製造数は発注単位で丸めないため、生鮮の部門だけ確かめる
+    if p.department.business_type == "order":
+        check_order_unit(quantity, p.product.order_unit)
     before = p.proposed_qty
     p.proposed_qty, p.is_adjusted, p.adjust_reason, p.adjust_note = quantity, True, reason, note
     _history(db, p, "adjust", actor_id, now, before, quantity, reason)

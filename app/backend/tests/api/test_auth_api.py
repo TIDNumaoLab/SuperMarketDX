@@ -83,3 +83,51 @@ def test_department_for_rejects_other_and_unknown(db, code, status):
 @pytest.mark.db
 def test_department_for_returns_own(db):
     assert department_for("VEG", Principal(1, "a", "staff", frozenset({"VEG"})), db).code == "VEG"
+
+
+def _login(client, login_id, password):
+    return client.post("/api/auth/login", json={"login_id": login_id, "password": password})
+
+
+@pytest.mark.db
+def test_login_locks_after_consecutive_failures(client, user_factory, fixed_now, db):
+    """同じログインIDで5回続けて失敗すると15分ロックし、その間は正しいパスワードでも同じ 401 の文言にする。"""
+    u = user_factory()
+    for _ in range(4):
+        assert _login(client, u.login_id, "wrong").status_code == 401
+    assert _login(client, u.login_id, "pass1234").status_code == 200   # 4回までなら成功し、回数を0に戻す
+    db.refresh(u)
+    assert (u.failed_login_count, u.locked_until) == (0, None)
+    for _ in range(5):
+        assert _login(client, u.login_id, "wrong").status_code == 401
+    res = _login(client, u.login_id, "pass1234")
+    assert res.status_code == 401 and res.json()["detail"] == "ログインIDまたはパスワードが正しくありません。"
+    fixed_now.advance(minutes=14, seconds=59)
+    assert _login(client, u.login_id, "pass1234").status_code == 401
+    fixed_now.advance(seconds=1)
+    assert _login(client, u.login_id, "pass1234").status_code == 200
+
+
+@pytest.mark.db
+def test_login_lock_limits_follow_config(make_client, user_factory, fixed_now):
+    client = make_client(login_max_failures=2, login_lock_minutes=1)
+    u = user_factory()
+    for _ in range(2):
+        _login(client, u.login_id, "wrong")
+    assert _login(client, u.login_id, "pass1234").status_code == 401
+    fixed_now.advance(minutes=1)
+    assert _login(client, u.login_id, "pass1234").status_code == 200
+
+
+@pytest.mark.db
+def test_login_unknown_id_is_plain_failure(client, fixed_now, db):
+    for _ in range(6):
+        res = _login(client, "nobody", "wrong")
+        assert res.status_code == 401 and res.json()["detail"] == "ログインIDまたはパスワードが正しくありません。"
+
+
+@pytest.mark.parametrize("enabled,status", [(True, 200), (False, 404)])
+def test_api_docs_can_be_disabled(make_client, enabled, status):
+    client = make_client(api_docs_enabled=enabled)
+    for path in ("/docs", "/redoc", "/openapi.json"):
+        assert client.get(path).status_code == status, path

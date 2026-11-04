@@ -2,7 +2,7 @@
 from datetime import date, time
 
 import pytest
-from sqlalchemy import select
+from sqlalchemy import select, text
 
 from smdx_api.db.models import (
     CalendarDay,
@@ -119,6 +119,36 @@ def test_freshness_context_counts_display_stock(db, product_factory):
     db.flush()
     assert freshness_context(db, deli.id, "baseline", 3).data_changed_at == jst(2026, 10, 16, 12, 1)
     assert freshness_context(db, dept(db, "VEG").id, "baseline", 3).data_changed_at is None
+
+
+@pytest.mark.db
+def test_freshness_context_counts_products_import_for_all_departments(db, product_factory):
+    """商品マスタの取込(部門なし)は全部門の判定に効く(発注単位・持越可否の変更を反映する)。"""
+    product_factory(code="VEG-001")
+    db.add(ImportLog(kind="pos", department_id=dept(db, "VEG").id, file_name="a.csv", imported_count=1,
+                     skipped_count=0, errors=[], finished_at=jst(2026, 10, 16, 9)))
+    db.add(ImportLog(kind="products", department_id=None, file_name="p.csv", imported_count=1, skipped_count=0,
+                     errors=[], finished_at=jst(2026, 10, 16, 11)))
+    db.flush()
+    for code in ("VEG", "FISH", "DELI"):
+        assert freshness_context(db, dept(db, code).id, "baseline", 3).data_changed_at == jst(2026, 10, 16, 11)
+
+
+@pytest.mark.db
+def test_manual_inputs_use_statement_time(db, product_factory):
+    """手入力の在庫・陳列残数の更新日時は文の実行時刻。now() だとトランザクションの開始時刻になり、
+    その間に始まった計算の提案を最新と判定してしまう。"""
+    from smdx_api.imports.manual import save_display_stock, save_manual_inventory
+
+    veg, deli = dept(db, "VEG"), dept(db, "DELI")
+    product_factory(code="VEG-001")
+    product_factory(code="DELI-001", department="DELI")
+    started = db.scalar(text("SELECT now()"))
+    db.execute(text("SELECT pg_sleep(0.05)"))
+    save_manual_inventory(db, veg, jst(2026, 10, 16, 8), [("VEG-001", 3)], None)
+    save_display_stock(db, deli, date(2026, 10, 16), jst(2026, 10, 16, 12), [("DELI-001", 2)], None)
+    for model in (InventorySnapshot, DisplayStockEntry):
+        assert db.scalar(select(model.updated_at)) > started
 
 
 @pytest.mark.db

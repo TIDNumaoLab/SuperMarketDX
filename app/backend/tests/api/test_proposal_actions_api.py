@@ -184,3 +184,26 @@ def test_actions_require_csrf_header(app, user_factory, proposal_factory, fixed_
     c.post("/api/auth/login", json={"login_id": u.login_id, "password": "pass1234"}, headers={"X-Requested-With": "smdx"})
     p = proposal_factory()
     assert c.post(f"/api/proposals/{p.id}/approve", json={"expected_qty": 10}).status_code == 403
+
+
+@pytest.mark.db
+def test_adjust_fresh_requires_multiple_of_order_unit(client, login, user_factory, product_factory, proposal_factory,
+                                                      fixed_now):
+    """生鮮の数量修正は発注単位(入数)の倍数に限る。倍数でなければ保存せず 422。"""
+    login(client, user_factory(departments=("VEG",)))
+    p = proposal_factory(product_factory(order_unit=6), qty=12)
+    res = client.patch(f"/api/proposals/{p.id}", json={"quantity": 7, "reason": "other"})
+    assert res.status_code == 422 and res.json()["detail"] == "発注単位(6)の倍数で入力してください"
+    for qty in (0, 18):
+        res = client.patch(f"/api/proposals/{p.id}", json={"quantity": qty, "reason": "other"})
+        assert res.status_code == 200 and res.json()["proposed_qty"] == qty
+
+
+@pytest.mark.db
+def test_adjust_deli_is_not_limited_by_order_unit(client, login, user_factory, product_factory, proposal_factory,
+                                                  fixed_now):
+    """惣菜の製造数は発注単位で丸めないため、倍数でなくても保存できる。"""
+    login(client, user_factory(departments=("DELI",)))
+    p = proposal_factory(product_factory(department="DELI", order_unit=6), time_band=14, qty=12)
+    res = client.patch(f"/api/proposals/{p.id}", json={"quantity": 7, "reason": "other"})
+    assert res.status_code == 200 and res.json()["proposed_qty"] == 7
