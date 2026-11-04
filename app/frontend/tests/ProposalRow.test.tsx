@@ -127,3 +127,31 @@ test("pending row is not dimmed", () => {
   renderRow(proposal());
   expect(screen.getByRole("row")).not.toHaveClass("done");
 });
+
+test("fresh quantity must be a multiple of the order unit", async () => {
+  // 入数6の生鮮の商品に7は保存できない(本体も 422 で拒否する)
+  const h = renderRow(proposal());
+  const user = userEvent.setup();
+  const input = screen.getByLabelText("キャベツ の提案数");
+  await user.clear(input);
+  await user.type(input, "7");
+  await user.selectOptions(screen.getByLabelText("キャベツ の修正理由"), "other");
+  expect(screen.getByText("発注単位(6)の倍数で入力してください")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "保存" })).toBeDisabled();
+  await user.clear(input);
+  await user.type(input, "12");
+  expect(screen.queryByText("発注単位(6)の倍数で入力してください")).not.toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "保存" }));
+  expect(h.onSave).toHaveBeenCalledWith(12, "other", undefined);
+});
+
+test("deli quantity is not limited by the order unit", async () => {
+  const h = renderRow(proposal({ department_code: "DELI", product_name: "唐揚げ", time_band: 14 }), { bandLabel: "14:00〜17:00" });
+  const user = userEvent.setup();
+  const input = screen.getByLabelText("唐揚げ 14:00〜17:00 の提案数");
+  await user.clear(input);
+  await user.type(input, "7");
+  await user.selectOptions(screen.getByLabelText("唐揚げ 14:00〜17:00 の修正理由"), "other");
+  await user.click(screen.getByRole("button", { name: "保存" }));
+  expect(h.onSave).toHaveBeenCalledWith(7, "other", undefined);
+});

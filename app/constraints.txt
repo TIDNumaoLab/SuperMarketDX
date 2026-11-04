@@ -1,8 +1,9 @@
 # Python ライブラリの共通バージョン固定(本体・特徴量・モデル作成・サンプル生成で共有)
 # 版を上げるときは全プロジェクトで同時に上げ、モデルファイルを作り直す
+# エクストラ([standard] など)は書かない(pip が拒否して本体のイメージを作れない)。エクストラは各 pyproject.toml で指定する
 fastapi==0.115.6
 starlette==0.41.3
-uvicorn[standard]==0.32.1
+uvicorn==0.32.1
 sqlalchemy==2.0.36
 alembic==1.14.0
 psycopg2-binary==2.9.10

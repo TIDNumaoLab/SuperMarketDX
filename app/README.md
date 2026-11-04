@@ -50,6 +50,7 @@ uv pip install --python .venv -c constraints.txt -e ./features -e ./backend -e .
 .venv/Scripts/python -m smdx_training run --data sample_data/output --granularity time_band --out model_training/output
 ```
 
+- macOS では LightGBM が OpenMP を使うため、先に `brew install libomp` を実行しておく(無いと `import lightgbm` が失敗する)。
 - 直近4週間を検証期間とし、ランダムフォレストと LightGBM をベースライン(前週同曜日)と WAPE で比べる。評価レポート `report-{版}.md` は毎回出力する。
 - ベースラインを上回るモデルがあれば `daily.joblib` / `time_band.joblib` を出力する。無ければ「採用しません」と表示し、既存のファイルは残す。
 - 評価レポートでベースラインを上回ることを確認してから、`backend/models/` に差し替える。本体はファイルの更新を検知して読み直す(再起動は不要)。書きかけのファイルを読み込まないよう、同じフォルダに別名でコピーしてから名前を変える。

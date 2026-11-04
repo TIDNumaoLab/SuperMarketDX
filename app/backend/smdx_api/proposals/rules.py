@@ -37,6 +37,12 @@ def check_adjust(s: ProposalState) -> None:
         raise StateError("この提案は修正できません")
 
 
+def check_order_unit(quantity: int, order_unit: int) -> None:
+    """生鮮の数量修正は発注単位(入数)の倍数に限る(発注できない数量を承認させない)。"""
+    if quantity % order_unit != 0:
+        raise InputError(f"発注単位({order_unit})の倍数で入力してください")
+
+
 EXPIRED_FOR_CANCEL = "期限を過ぎているため取り消せません"
 QTY_CHANGED = "数量が更新されました。一覧を取り直してから承認してください"
 BULK_QTY_CHANGED = "数量が更新されたため一括承認から除外しました"

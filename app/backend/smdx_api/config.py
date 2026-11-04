@@ -37,6 +37,11 @@ class AppConfig(BaseSettings):
     session_max_age_hours: float = Field(default=3, gt=0)
     # 取込ファイルの上限(MB)。全体をメモリに読んで検証するため、大きすぎるファイルで本体が止まらないようにする
     import_max_mb: float = Field(default=50, gt=0)
+    # 同じログインIDでこの回数続けて失敗すると、LOGIN_LOCK_MINUTES の間ログインできなくする(パスワードの総当たり対策)
+    login_max_failures: int = Field(default=5, ge=1)
+    login_lock_minutes: float = Field(default=15, gt=0)
+    # /docs・/redoc・/openapi.json を出すか(インターネットから届く評価環境では false)
+    api_docs_enabled: bool = True
 
     @field_validator("cors_allow_origins", mode="before")
     @classmethod

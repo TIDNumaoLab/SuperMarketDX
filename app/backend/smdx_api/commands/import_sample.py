@@ -111,7 +111,7 @@ def import_sample(db: Session, folder: Path, now: datetime) -> dict[str, int]:
 
     counts: dict[str, int] = {}
     products_csv = folder / FILES["products"]
-    counts["products"] = run_import(db, "products", products_csv.name, products_csv.read_bytes(), None, None, now).imported_count
+    counts["products"] = run_import(db, "products", products_csv.name, products_csv.read_bytes(), None, None, lambda: now).imported_count
 
     departments = {d.code: d for d in db.scalars(select(Department))}
     dept_of = dict(db.execute(select(Product.product_code, Department.code).join(Department, Product.department_id == Department.id)).all())
@@ -120,7 +120,7 @@ def import_sample(db: Session, folder: Path, now: datetime) -> dict[str, int]:
         counts[kind] = 0
         # 部門に該当する行が1行も無い種類は取込を呼ばない(取込履歴を作らない)
         for code, rows in sorted(_split_by_department(_read(path), dept_of).items()):
-            log = run_import(db, kind, path.name, _to_bytes(rows), departments[code], None, now)
+            log = run_import(db, kind, path.name, _to_bytes(rows), departments[code], None, lambda: now)
             counts[kind] += log.imported_count
 
     counts["weather"] = _import_weather(db, folder / "weather.csv")

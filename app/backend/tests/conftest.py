@@ -2,6 +2,7 @@
 
 DB を使う試験は `@pytest.mark.db` を付け、環境変数 TEST_DATABASE_URL があるときだけ実行する。
 試験用DBは public スキーマを作り直してから `alembic upgrade head` で作る(create_all は使わない)。
+DB 名が `_test` で終わらなければ、DB に触れずに試験を止める。
 """
 import itertools
 import os
@@ -12,7 +13,7 @@ import pytest
 from alembic import command
 from alembic.config import Config as AlembicConfig
 from fastapi.testclient import TestClient
-from sqlalchemy import select, text
+from sqlalchemy import make_url, select, text
 from sqlalchemy.orm import Session
 
 from smdx_api.api.deps import get_db
@@ -49,6 +50,10 @@ def db_engine():
     url = os.environ.get("TEST_DATABASE_URL")
     if not url:
         pytest.skip("TEST_DATABASE_URL が未設定のため DB 試験をスキップ")
+    # public スキーマを作り直すので、開発用の DB を誤って指定しても消さないよう、名前が _test で終わる DB に限る
+    name = make_url(url).database or ""
+    if not name.endswith("_test"):
+        pytest.exit(f"TEST_DATABASE_URL の DB 名は _test で終わるものにしてください(指定: {name})", returncode=4)
     # 本体と同じ接続設定(タイムゾーン Asia/Tokyo)にする
     engine = make_engine(url)
     with engine.begin() as conn:

@@ -49,6 +49,9 @@ class User(TimestampMixin, Base):
     password_hash: Mapped[str] = mapped_column(String(255))
     role: Mapped[str] = mapped_column(String(16))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
+    # 続けてログインに失敗した回数と、ログインできない期限(詳細設計書「API仕様」の POST /api/auth/login)
+    failed_login_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    locked_until: Mapped[dt.datetime | None] = mapped_column(TZDateTime)
 
     departments: Mapped[list[Department]] = relationship(
         secondary="user_departments", order_by="Department.code", viewonly=True

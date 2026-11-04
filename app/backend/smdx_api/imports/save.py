@@ -8,7 +8,7 @@
 """
 from collections.abc import Sequence
 
-from sqlalchemy import delete, select, tuple_
+from sqlalchemy import delete, func, select, tuple_
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
@@ -82,7 +82,9 @@ def _save_inventory(db: Session, rows: Sequence[InventoryRow], source: str = "cs
     latest: dict[tuple, int] = {}
     for r in rows:
         latest[(r.based_at, r.product_id)] = r.quantity
-    values = [dict(based_at=t, product_id=p, quantity=q, source=source, entered_by=entered_by) for (t, p), q in latest.items()]
+    # 更新日時は文の実行時刻にする(now() はトランザクションの開始時刻のため、保存より前の時刻になる。最新性判定で使う)
+    values = [dict(based_at=t, product_id=p, quantity=q, source=source, entered_by=entered_by, updated_at=func.clock_timestamp())
+              for (t, p), q in latest.items()]
     for chunk in _chunks(values):
         stmt = insert(InventorySnapshot).values(chunk)
         db.execute(stmt.on_conflict_do_update(

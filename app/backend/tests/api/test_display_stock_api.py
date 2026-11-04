@@ -97,11 +97,13 @@ def test_display_stock_requires_csrf_header(app, user_factory, deli_setup):
 
 
 @pytest.mark.db
-def test_display_stock_target_out_of_range_is_400(client, login, user_factory, deli_setup):
+def test_display_stock_target_other_than_today_is_400(client, login, user_factory, deli_setup, db):
+    """陳列残数は当日の分だけ。翌日以降の分を受け付けると、入力した時刻だけで翌日の時間帯から差し引いてしまう。"""
     login(client, user_factory(departments=("DELI",)))
-    for d in ("2026-10-15", "2026-11-01"):
+    for d in ("2026-10-15", "2026-10-17", "2026-11-01"):
         res = client.put(URL, json=body(target=d))
-        assert res.status_code == 400 and res.json()["detail"] == "対象日は当日から15日先までを指定してください"
+        assert res.status_code == 400 and res.json()["detail"] == "陳列残数は当日の分だけ入力できます"
+    assert list(db.scalars(select(DisplayStockEntry))) == []
 
 
 # 422 では保存を取り消す(試験ではログインも巻き戻るため、1回の要求ずつ確かめる)

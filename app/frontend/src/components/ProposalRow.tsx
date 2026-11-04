@@ -61,9 +61,12 @@ export default function ProposalRow({ proposal: p, selected, skippedReason, appr
   }, [p.id, dirty, onDirtyChange]);
   // 行が消えたら入力も無くなる
   useEffect(() => () => onDirtyChange?.(p.id, false), [p.id, onDirtyChange]);
-  const valid = /^\d+$/.test(qty.trim());
   // 惣菜は同じ商品が時間帯ごとに並ぶので、入力欄の名前に時間帯を含める
   const production = bandLabel !== undefined;
+  const isInteger = /^\d+$/.test(qty.trim());
+  // 生鮮は発注単位(入数)の倍数だけ保存できる(惣菜の製造数は発注単位で丸めない)
+  const unitError = !production && isInteger && Number(qty.trim()) % p.order_unit !== 0;
+  const valid = isInteger && !unitError;
   const name = production ? `${p.product_name} ${bandLabel}` : p.product_name;
 
   return (
@@ -95,12 +98,13 @@ export default function ProposalRow({ proposal: p, selected, skippedReason, appr
             <input
               type="number"
               min={0}
-              step={1}
+              step={production ? 1 : p.order_unit}
               className={`${styles.qty} ${dirty ? styles.changed : ""}`}
               aria-label={`${name} の提案数`}
               value={qty}
               onChange={(e) => setQty(e.target.value)}
             />
+            {dirty && unitError && <div className={styles.skipped}>発注単位({p.order_unit})の倍数で入力してください</div>}
             {dirty && (
               <div className={styles.reason}>
                 <AdjustReasonSelect label={`${name} の修正理由`} value={reason} onChange={setReason} />

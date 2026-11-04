@@ -2,7 +2,7 @@
 from collections.abc import Sequence
 from datetime import date, datetime
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
@@ -48,7 +48,9 @@ def save_display_stock(
     if not latest:
         return 0
     stmt = insert(DisplayStockEntry).values([
-        dict(target_date=target, entered_at=entered_at, product_id=pid, quantity=qty, entered_by=user_id)
+        # 更新日時は文の実行時刻にする(最新性判定で使う。now() はトランザクションの開始時刻になる)
+        dict(target_date=target, entered_at=entered_at, product_id=pid, quantity=qty, entered_by=user_id,
+             updated_at=func.clock_timestamp())
         for pid, qty in latest.items()
     ])
     db.execute(stmt.on_conflict_do_update(

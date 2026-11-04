@@ -8,6 +8,11 @@
 !/.gitignore
 !/CLAUDE.md
 
+# .github/ はプルリクエストのテンプレートだけをコミット対象にする
+!/.github/
+/.github/*
+!/.github/pull_request_template.md
+
 # .claude/ は settings.json(チーム共有設定)だけをコミット対象にする
 !/.claude/
 /.claude/*
