@@ -26,6 +26,15 @@ def test_backend_image_is_python_311():
     assert "-c constraints.txt" in text
 
 
+def test_constraints_have_no_extras():
+    # pip は制約ファイルのエクストラ(例: uvicorn[standard])を拒否し、本体のイメージを作れなくなる(uv は受け付けるので手元では気づかない)
+    text = (INFRA.parent / "constraints.txt").read_text(encoding="utf-8")
+    lines = [ln.strip() for ln in text.splitlines() if ln.strip() and not ln.lstrip().startswith("#")]
+    assert lines
+    for ln in lines:
+        assert "[" not in ln, ln
+
+
 def test_frontend_image_is_node_24():
     text = _read("frontend.Dockerfile")
     assert "node:24" in text and "npm ci" in text
